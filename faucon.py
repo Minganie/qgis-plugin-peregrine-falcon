@@ -83,15 +83,12 @@ class peregrineFalcon:
 
 
 
-    def calculate_cliff_area(self):
-        pass
-
-
-
-
 
     def dem_to_slopes(self):
         pass
+
+
+
 
 
 
@@ -129,6 +126,12 @@ class peregrineFalcon:
         # hist, bin_edges = numpy.histogram(falaises_data, falaises_data.max())
         # print hist
         # print bin_edges
+
+
+
+
+
+
 
     def calculate_slope_avg(self):
 
@@ -173,22 +176,134 @@ class peregrineFalcon:
         identify_cliff_img.SetProjection(self.input_prj)
         identify_cliff_img.SetGeoTransform((self.input_geot[0], self.input_geot[1], self.input_geot[2], self.input_geot[3], self.input_geot[4], self.input_geot[5]))
         ########
+        self.drop_below_avg()
 
-    # def rasterize_water(self):
-    #     x_min, x_max, y_min, y_max = self.input_water.GetExtent()
-    #
-    #     x_res = int((x_max - x_min) / self.input_geot[1])
-    #     y_res = int((y_max - y_min) / self.input_geot[5])
-    #
-    #     v_driverOut = gdal.GetDriverByName("GTiff")
-    #     v_image = v_driverOut.Create(r'c:\temp\rasterized.tif', cols, rows, 1, GDT_Int32)
-    #
-    #     v_image.SetGeoTransform((self.input_geot[0], self.input_geot[1], self.input_geot[2], self.input_geot[3], self.input_geot[4], self.input_geot[5]))
-    #     v_band = v_image.GetRasterBand(1)
-    #     v_band.SetNoDataValue(0)
-    #
-    #     # Écriture du raster à partir du shapefile
-    #     gdal.RasterizeLayer(v_image, [1], self.input_water, burn_values=[1])
+
+
+
+
+
+
+    def drop_below_avg(self):
+        # # Tout ce qui vaut moins de 40 prend la valeur 1
+        for i, f in enumerate(self.falaises_data):
+            for j, g in enumerate(f):
+                if (g >= float(self.slope_deg)): pass
+                else: self.falaises_data[i][j] = 0
+
+        below_avg_img = self.writeDriver.Create(r'c:\temp\drop_below_avg.tif', self.cols, self.rows, 1, GDT_Int32)
+        below_avg_img_band1 = below_avg_img.GetRasterBand(1)
+        below_avg_img_band1.WriteArray(self.falaises_data, 0, 0)
+
+        ########
+        below_avg_img.SetProjection(self.input_prj)
+        below_avg_img.SetGeoTransform((self.input_geot[0], self.input_geot[1], self.input_geot[2], self.input_geot[3], self.input_geot[4], self.input_geot[5]))
+        ########
+
+
+
+
+
+
+
+    def calculate_cliff_area(self):
+        pass
+
+
+
+
+
+
+    def calculate_water_area(self):
+
+        struct = [[1,1,1],
+                  [1,1,1],
+                  [1,1,1]]
+
+        labeled_lakes, num_lakes = scipy.ndimage.measurements.label(self.falaises_data, structure=struct)
+
+        print labeled_lakes
+        print num_lakes
+        numb2 = []
+        # for i in labeled_lakes:
+        #     for j in i:
+        #         if (j != 0):
+        #             numb2[j-1] = numb2[j-1] + 1
+        #
+        # print numb2
+        #
+        #     # Pour garder les étendues d'eau de grandeur significatives
+        # labeled_lakes2 = labeled_lakes
+        # for i, label in enumerate(labeled_lakes):
+        #     for j, label2 in enumerate(label):
+        #         if label2 != 0:
+        #             if (numb2[label2-1] > 10):
+        #                 #print numb2[label2-1]
+        #                 labeled_lakes2[i][j] = 2
+        #             else:
+        #                 labeled_lakes2[i][j] = 0
+
+
+
+
+
+
+
+
+
+    def create_proximity_raster(self):
+        creation_options = []
+
+
+        dst_filename = r'c:\temp\create_proximity_raster.tif'
+
+
+        proximity_img = self.writeDriver.Create( dst_filename, self.cols, self.rows, 1, GDT_Float32)
+
+        proximity_img.SetGeoTransform(self.input_geot)
+        proximity_img.SetProjection(self.input_prj)
+
+        proximity_img_band1 = proximity_img.GetRasterBand(1)
+
+        self.water_rast_img_band1 = self.water_rast_img.GetRasterBand(1)
+        gdal.ComputeProximity(self.water_rast_img_band1, proximity_img_band1, [])
+
+
+
+
+
+
+
+
+
+
+    def rasterize_water(self):
+
+        self.input_water_shp = ogr.Open(self.input_water)
+        self.input_water_shp_lyr = self.input_water_shp.GetLayer()
+        x_min, x_max, y_min, y_max = self.input_water_shp_lyr.GetExtent()
+
+        x_res = int((x_max - x_min) / self.input_geot[1])
+        y_res = int((y_max - y_min) / self.input_geot[5])
+
+
+        self.water_rast_img = self.writeDriver.Create(r'c:\temp\water_rasterized.tif', self.cols, self.rows, 1, GDT_Int32)
+
+        self.water_rast_img.SetGeoTransform((self.input_geot[0], self.input_geot[1], self.input_geot[2], self.input_geot[3], self.input_geot[4], self.input_geot[5]))
+        self.water_rast_img_band1 = self.water_rast_img.GetRasterBand(1)
+        self.water_rast_img_band1.SetNoDataValue(0)
+
+        # Écriture du raster à partir du shapefile
+        gdal.RasterizeLayer(self.water_rast_img, [1], self.input_water_shp_lyr, burn_values=[1])
+        self.water_rast_img.SetGeoTransform((self.input_geot[0], self.input_geot[1], self.input_geot[2], self.input_geot[3], self.input_geot[4], self.input_geot[5]))
+        self.water_rast_img.SetProjection(self.input_prj)
+
+
+
+
+
+
+
 
 
 

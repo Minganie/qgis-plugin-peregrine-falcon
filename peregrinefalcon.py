@@ -86,6 +86,10 @@ class PeregrineFalcon:
         self.dlg.slopeDegSlider.valueChanged.connect(self.show_slope_deg_value)
 
 
+        ####### VALEURS TEMPORAIRES POUR DEBUG ################
+        self.dlg.demLineEdit.setText(r"C:\OSGeo4W64\apps\qgis\python\plugins\PeregrineFalcon\in_data\larouche_slopeq.tif")
+        self.dlg.waterLineEdit.setText(r"C:\OSGeo4W64\apps\qgis\python\plugins\PeregrineFalcon\in_data\waterbody_2.shp")
+        ###################################
 
         #########################################################
         #########################################################
@@ -218,7 +222,9 @@ class PeregrineFalcon:
             #faucon.calculate_cliff_area()
             faucon.identify_cliffs()
             faucon.calculate_slope_avg()
-            #faucon.rasterize_water()
+            faucon.rasterize_water()
+            faucon.create_proximity_raster()
+            faucon.calculate_water_area()
 
 
     def select_dem_file(self):
