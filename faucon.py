@@ -3,9 +3,6 @@
 
 # Spécification des chemins de l'interpreteur et des librairies sous windows
 ###### Vérifier si le OS est Windows
-import sys,os
-sys.path.append(r'C:\OSGeo4W64\apps\Python27\Lib\site-packages')
-os.environ['PATH'] = r'C:\OSGeo4W64\bin'
 
 
 from osgeo import gdal, ogr
