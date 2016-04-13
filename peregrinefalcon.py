@@ -218,6 +218,7 @@ class PeregrineFalcon:
             #faucon.calculate_cliff_area()
             faucon.identify_cliffs()
             faucon.calculate_slope_avg()
+            #faucon.rasterize_water()
 
 
     def select_dem_file(self):

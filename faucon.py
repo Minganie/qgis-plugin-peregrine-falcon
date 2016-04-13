@@ -114,7 +114,7 @@ class peregrineFalcon:
                 else: self.falaises_data[i][j] = 0
 
         writeDriver = gdal.GetDriverByName('GTiff')
-        identify_cliff_img = writeDriver.Create(r'/home/prototron/temp/identify_cliffs.tif', self.cols, self.rows, 1, GDT_Int32)
+        identify_cliff_img = writeDriver.Create(r'c:\temp\identify_cliffs.tif', self.cols, self.rows, 1, GDT_Int32)
         identify_cliff_img_band1 = identify_cliff_img.GetRasterBand(1)
         identify_cliff_img_band1.WriteArray(self.falaises_data, 0, 0)
 
@@ -154,8 +154,24 @@ class peregrineFalcon:
 
         print avg_slope
 
-        #print labeled_array
-        #print num_features
+
+    # def rasterize_water(self):
+    #     x_min, x_max, y_min, y_max = self.input_water.GetExtent()
+    #
+    #     x_res = int((x_max - x_min) / self.input_geot[1])
+    #     y_res = int((y_max - y_min) / self.input_geot[5])
+    #
+    #     v_driverOut = gdal.GetDriverByName("GTiff")
+    #     v_image = v_driverOut.Create(r'c:\temp\rasterized.tif', cols, rows, 1, GDT_Int32)
+    #
+    #     v_image.SetGeoTransform((self.input_geot[0], self.input_geot[1], self.input_geot[2], self.input_geot[3], self.input_geot[4], self.input_geot[5]))
+    #     v_band = v_image.GetRasterBand(1)
+    #     v_band.SetNoDataValue(0)
+    #
+    #     # Écriture du raster à partir du shapefile
+    #     gdal.RasterizeLayer(v_image, [1], self.input_water, burn_values=[1])
+
+
 
 # ###################################################################################
 # #####                        Détermination des falaises                       #####
