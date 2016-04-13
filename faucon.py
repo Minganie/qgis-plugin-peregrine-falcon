@@ -113,10 +113,16 @@ class peregrineFalcon:
                 if (g >= float(self.slope_deg)): pass
                 else: self.falaises_data[i][j] = 0
 
-        writeDriver = gdal.GetDriverByName('GTiff')
-        identify_cliff_img = writeDriver.Create(r'c:\temp\identify_cliffs.tif', self.cols, self.rows, 1, GDT_Int32)
+        self.writeDriver = gdal.GetDriverByName('GTiff')
+        identify_cliff_img = self.writeDriver.Create(r'c:\temp\identify_cliffs.tif', self.cols, self.rows, 1, GDT_Int32)
         identify_cliff_img_band1 = identify_cliff_img.GetRasterBand(1)
         identify_cliff_img_band1.WriteArray(self.falaises_data, 0, 0)
+
+
+        ########
+        identify_cliff_img.SetProjection(self.input_prj)
+        identify_cliff_img.SetGeoTransform((self.input_geot[0], self.input_geot[1], self.input_geot[2], self.input_geot[3], self.input_geot[4], self.input_geot[5]))
+        ########
 
 
         #labeled_array, num_features = scipy.ndimage.measurements.label(input_data, structure=struct)
@@ -154,6 +160,19 @@ class peregrineFalcon:
 
         print avg_slope
 
+
+        for i, value in enumerate(labeled_array):
+            for j, value2 in enumerate(value):
+                self.falaises_data[i][j] = avg_slope[value2-1]
+
+        identify_cliff_img = self.writeDriver.Create(r'c:\temp\identify_cliffs_rc.tif', self.cols, self.rows, 1, GDT_Int32)
+        identify_cliff_img_band1 = identify_cliff_img.GetRasterBand(1)
+        identify_cliff_img_band1.WriteArray(self.falaises_data, 0, 0)
+
+        ########
+        identify_cliff_img.SetProjection(self.input_prj)
+        identify_cliff_img.SetGeoTransform((self.input_geot[0], self.input_geot[1], self.input_geot[2], self.input_geot[3], self.input_geot[4], self.input_geot[5]))
+        ########
 
     # def rasterize_water(self):
     #     x_min, x_max, y_min, y_max = self.input_water.GetExtent()
