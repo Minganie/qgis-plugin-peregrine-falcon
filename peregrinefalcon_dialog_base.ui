@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>474</width>
-    <height>602</height>
+    <width>479</width>
+    <height>683</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>310</x>
-     <y>560</y>
+     <y>640</y>
      <width>161</width>
      <height>41</height>
     </rect>
@@ -35,7 +35,7 @@
      <x>0</x>
      <y>10</y>
      <width>471</width>
-     <height>101</height>
+     <height>141</height>
     </rect>
    </property>
    <property name="title">
@@ -119,14 +119,53 @@
      </item>
     </layout>
    </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget_8">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>100</y>
+      <width>451</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_8">
+     <item>
+      <widget class="QLabel" name="wetInLabel">
+       <property name="text">
+        <string>Milieux humides:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="wetLandLineEdit">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="wetLandPushButton">
+       <property name="maximumSize">
+        <size>
+         <width>35</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <widget class="QGroupBox" name="paramGroupBox">
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>190</y>
+     <y>240</y>
      <width>471</width>
-     <height>171</height>
+     <height>201</height>
     </rect>
    </property>
    <property name="title">
@@ -136,7 +175,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>130</y>
+      <y>160</y>
       <width>451</width>
       <height>31</height>
      </rect>
@@ -145,7 +184,7 @@
      <item>
       <widget class="QLabel" name="slopeDegLabel">
        <property name="text">
-        <string>Importance de la pente (degrés):</string>
+        <string>Inclinaison de la pente (degrés):</string>
        </property>
       </widget>
      </item>
@@ -223,7 +262,7 @@
      <item>
       <widget class="QLabel" name="waterAreaLabel">
        <property name="text">
-        <string>Superficie des étendues d'eau</string>
+        <string>Superficie des étendues d'eau:</string>
        </property>
       </widget>
      </item>
@@ -253,7 +292,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>80</y>
+      <y>110</y>
       <width>451</width>
       <height>31</height>
      </rect>
@@ -279,7 +318,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>110</y>
+      <y>140</y>
       <width>451</width>
       <height>20</height>
      </rect>
@@ -288,12 +327,51 @@
      <enum>Qt::Horizontal</enum>
     </property>
    </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget_7">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>80</y>
+      <width>451</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_7">
+     <item>
+      <widget class="QLabel" name="wetLandAreaLabel">
+       <property name="text">
+        <string>Superficie des milieux humides:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSlider" name="wetLandAreaSlider">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="wetLandParamLineEdit">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>40</width>
+         <height>16777215</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <widget class="QGroupBox" name="outputGroupBox">
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>120</y>
+     <y>160</y>
      <width>471</width>
      <height>61</height>
     </rect>
@@ -354,7 +432,7 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>370</y>
+     <y>450</y>
      <width>471</width>
      <height>181</height>
     </rect>
@@ -393,7 +471,7 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>560</y>
+     <y>640</y>
      <width>81</width>
      <height>31</height>
     </rect>

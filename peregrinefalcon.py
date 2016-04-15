@@ -81,14 +81,37 @@ class PeregrineFalcon:
 
         self.dlg.slopeAreaSlider.setMinimum(2)
         self.dlg.slopeAreaSlider.setMaximum(100)
+
+        self.dlg.slopeDegSlider.setMinimum(20)
+        self.dlg.slopeDegSlider.setMaximum(100)
+
+        self.dlg.waterAreaSlider.setMinimum(2)
+        self.dlg.waterAreaSlider.setMaximum(100)
+
+        self.dlg.wetLandAreaSlider.setMinimum(2)
+        self.dlg.wetLandAreaSlider.setMaximum(100)
+
+
+        # Listen to events
         self.dlg.slopeAreaSlider.valueChanged.connect(self.show_slope_area_value)
         self.dlg.waterAreaSlider.valueChanged.connect(self.show_water_area_value)
         self.dlg.slopeDegSlider.valueChanged.connect(self.show_slope_deg_value)
+        self.dlg.wetLandAreaSlider.valueChanged.connect(self.show_wet_land_value)
+
+        # Initialiser des valeurs par défaut pour les paramètres
+        self.dlg.slopeAreaSlider.setValue(5)
+        self.dlg.waterAreaSlider.setValue(5)
+        self.dlg.wetLandAreaSlider.setValue(5)
+        self.dlg.slopeDegSlider.setValue(40)
+        self.dlg.pixelRadioButton.setChecked(True)
 
 
         ####### VALEURS TEMPORAIRES POUR DEBUG ################
-        self.dlg.demLineEdit.setText(r"C:\OSGeo4W64\apps\qgis\python\plugins\PeregrineFalcon\in_data\larouche_slopeq.tif")
-        self.dlg.waterLineEdit.setText(r"C:\OSGeo4W64\apps\qgis\python\plugins\PeregrineFalcon\in_data\waterbody_2.shp")
+        self.dlg.demLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/larouche_slopeq.tif")
+        self.dlg.waterLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/waterbody_2.shp")
+        self.dlg.outLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/out_data/')
+        self.dlg.wetLandLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/saturated_soil_2.shp')
+
         ###################################
 
         #########################################################
@@ -227,6 +250,9 @@ class PeregrineFalcon:
             faucon.calculate_water_area()
 
 
+
+
+
     def select_dem_file(self):
         input_dem = QFileDialog.getOpenFileName(self.dlg, "Selectionnez un fichier TIF", r"", '*.tif')
         self.dlg.demLineEdit.setText(input_dem)
@@ -238,6 +264,11 @@ class PeregrineFalcon:
     def select_output_folder(self):
         output_file = QFileDialog.getSaveFileName(self.dlg, "Selectionnez un emplacement de sortie", r"", "*.tif")
         self.dlg.outLineEdit.setText(output_file)
+
+
+#    def show_param_values(self, input_value, targetLineEdit):
+#        self.dlg.targetLineEdit.setText(str(input_value))
+
 
     def show_slope_area_value(self):
         slope_value = self.dlg.slopeAreaSlider.value()
@@ -251,6 +282,9 @@ class PeregrineFalcon:
         slope_deg_value = self.dlg.slopeDegSlider.value()
         self.dlg.slopeDegLineEdit.setText(str(slope_deg_value))
 
+    def show_wet_land_value(self):
+        wet_land_value = self.dlg.wetLandAreaSlider.value()
+        self.dlg.wetLandParamLineEdit.setText(str(wet_land_value))
 
 
     def show_help(self):

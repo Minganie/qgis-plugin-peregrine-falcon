@@ -9,6 +9,8 @@ from osgeo import gdal, ogr
 from gdalconst import *
 import numpy
 import scipy.ndimage
+import os
+
 
 
 class peregrineFalcon:
@@ -33,6 +35,8 @@ class peregrineFalcon:
         self.units = units
         self.slope_deg = slope_deg
         print "Plugin PeregrineFalcon"
+
+
 
 
 
@@ -111,7 +115,8 @@ class peregrineFalcon:
                 else: self.falaises_data[i][j] = 0
 
         self.writeDriver = gdal.GetDriverByName('GTiff')
-        identify_cliff_img = self.writeDriver.Create(r'c:\temp\identify_cliffs.tif', self.cols, self.rows, 1, GDT_Int32)
+        temp_write_path = self.output_path + os.sep + 'identify_cliffs.tif'
+        identify_cliff_img = self.writeDriver.Create(temp_write_path, self.cols, self.rows, 1, GDT_Int32)
         identify_cliff_img_band1 = identify_cliff_img.GetRasterBand(1)
         identify_cliff_img_band1.WriteArray(self.falaises_data, 0, 0)
 
@@ -168,7 +173,8 @@ class peregrineFalcon:
             for j, value2 in enumerate(value):
                 self.falaises_data[i][j] = avg_slope[value2-1]
 
-        identify_cliff_img = self.writeDriver.Create(r'c:\temp\identify_cliffs_rc.tif', self.cols, self.rows, 1, GDT_Int32)
+        temp_write_path = self.output_path + os.sep + 'identify_cliffs_rc.tif'
+        identify_cliff_img = self.writeDriver.Create(temp_write_path, self.cols, self.rows, 1, GDT_Int32)
         identify_cliff_img_band1 = identify_cliff_img.GetRasterBand(1)
         identify_cliff_img_band1.WriteArray(self.falaises_data, 0, 0)
 
@@ -191,7 +197,8 @@ class peregrineFalcon:
                 if (g >= float(self.slope_deg)): pass
                 else: self.falaises_data[i][j] = 0
 
-        below_avg_img = self.writeDriver.Create(r'c:\temp\drop_below_avg.tif', self.cols, self.rows, 1, GDT_Int32)
+        temp_write_path = self.output_path + os.sep + 'drop_below_avg.tif'
+        below_avg_img = self.writeDriver.Create(temp_write_path, self.cols, self.rows, 1, GDT_Int32)
         below_avg_img_band1 = below_avg_img.GetRasterBand(1)
         below_avg_img_band1.WriteArray(self.falaises_data, 0, 0)
 
@@ -254,11 +261,11 @@ class peregrineFalcon:
     def create_proximity_raster(self):
         creation_options = []
 
-
+        temp_write_path = self.output_path + os.sep + 'create_proximity_raster.tif'
         dst_filename = r'c:\temp\create_proximity_raster.tif'
 
 
-        proximity_img = self.writeDriver.Create( dst_filename, self.cols, self.rows, 1, GDT_Float32)
+        proximity_img = self.writeDriver.Create(temp_write_path, self.cols, self.rows, 1, GDT_Float32)
 
         proximity_img.SetGeoTransform(self.input_geot)
         proximity_img.SetProjection(self.input_prj)
@@ -286,8 +293,8 @@ class peregrineFalcon:
         x_res = int((x_max - x_min) / self.input_geot[1])
         y_res = int((y_max - y_min) / self.input_geot[5])
 
-
-        self.water_rast_img = self.writeDriver.Create(r'c:\temp\water_rasterized.tif', self.cols, self.rows, 1, GDT_Int32)
+        temp_write_path = self.output_path + os.sep + 'water_rasterized.tif'
+        self.water_rast_img = self.writeDriver.Create(temp_write_path, self.cols, self.rows, 1, GDT_Int32)
 
         self.water_rast_img.SetGeoTransform((self.input_geot[0], self.input_geot[1], self.input_geot[2], self.input_geot[3], self.input_geot[4], self.input_geot[5]))
         self.water_rast_img_band1 = self.water_rast_img.GetRasterBand(1)
