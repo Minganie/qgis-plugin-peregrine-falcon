@@ -43,7 +43,7 @@ class NonMaxSupp:
                 record = {'geometry': {'coordinates': (0,0), 'type': 'Point'},
                           'id': '1',
                           'properties': {}}
-                with fiona.open("cliffs.shp", 'w', driver='ESRI Shapefile', crs=src.crs, schema=schema) as c:
+                with fiona.open(r"out_data/cliffs.shp", 'w', driver='ESRI Shapefile', crs=src.crs, schema=schema) as c:
                     for coord in coordinates:
                         print(len(c))
                         record['geometry']['coordinates'] = coord
