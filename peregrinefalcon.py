@@ -26,10 +26,12 @@ from PyQt4.QtGui import QAction, QIcon, QFileDialog
 import resources
 # Import the code for the dialog
 from peregrinefalcon_dialog import PeregrineFalconDialog
+
+
 import os.path
 
 from faucon import peregrineFalcon
-
+from faucon_validation import validation
 
 class PeregrineFalcon:
     """QGIS Plugin Implementation."""
@@ -74,22 +76,37 @@ class PeregrineFalcon:
         #########################################################
 
 
+        # Initialisation des variables
+        self.input_wetland = ""
+        self.input_water = ""
+        self.input_dem = ""
+
+
+        self.validate = validation()
+
+        #######
+
         self.dlg.demPushButton.clicked.connect(self.select_dem_file)
         self.dlg.waterPushButton.clicked.connect(self.select_water_file)
+        self.dlg.wetLandPushButton.clicked.connect(self.select_wetland_file)
         self.dlg.outPushButton.clicked.connect(self.select_output_folder)
 
 
+        self.dlg.demLineEdit.editingFinished.connect(self.write_dem_srs)
+        self.dlg.waterLineEdit.editingFinished.connect(self.write_water_srs)
+        self.dlg.wetLandLineEdit.editingFinished.connect(self.write_wetland_srs)
+
         self.dlg.slopeAreaSlider.setMinimum(2)
-        self.dlg.slopeAreaSlider.setMaximum(100)
+        self.dlg.slopeAreaSlider.setMaximum(1000)
 
         self.dlg.slopeDegSlider.setMinimum(20)
-        self.dlg.slopeDegSlider.setMaximum(100)
+        self.dlg.slopeDegSlider.setMaximum(90)
 
         self.dlg.waterAreaSlider.setMinimum(2)
-        self.dlg.waterAreaSlider.setMaximum(100)
+        self.dlg.waterAreaSlider.setMaximum(1000)
 
         self.dlg.wetLandAreaSlider.setMinimum(2)
-        self.dlg.wetLandAreaSlider.setMaximum(100)
+        self.dlg.wetLandAreaSlider.setMaximum(1000)
 
 
         # Listen to events
@@ -97,6 +114,8 @@ class PeregrineFalcon:
         self.dlg.waterAreaSlider.valueChanged.connect(self.show_water_area_value)
         self.dlg.slopeDegSlider.valueChanged.connect(self.show_slope_deg_value)
         self.dlg.wetLandAreaSlider.valueChanged.connect(self.show_wet_land_value)
+
+
 
         # Initialiser des valeurs par défaut pour les paramètres
         self.dlg.slopeAreaSlider.setValue(5)
@@ -106,13 +125,17 @@ class PeregrineFalcon:
         self.dlg.pixelRadioButton.setChecked(True)
 
 
+
+
         ####### VALEURS TEMPORAIRES POUR DEBUG ################
-        self.dlg.demLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/larouche_slopeq.tif")
+        self.dlg.demLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/larouche_slopeq2.tif")
         self.dlg.waterLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/waterbody_2.shp")
         self.dlg.outLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/out_data/')
         self.dlg.wetLandLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/saturated_soil_2.shp')
 
         ###################################
+
+
 
         #########################################################
         #########################################################
@@ -239,36 +262,128 @@ class PeregrineFalcon:
         if result:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
-            faucon = peregrineFalcon(self.dlg.demLineEdit.text(), self.dlg.waterLineEdit.text(), self.dlg.outLineEdit.text(), self.dlg.slopeLineEdit.text(), self.dlg.waterParamLineEdit.text(), "", self.dlg.slopeDegLineEdit.text())
+            self.input_dem = self.dlg.demLineEdit.text()
+            self.input_water = self.dlg.waterLineEdit.text()
+            self.input_wetland = self.dlg.wetLandLineEdit.text()
+
+            validate_input = self.validate.validate_input([self.input_dem, self.input_water, self.input_wetland])
+            if (validate_input[0] == False):
+                print "[ERREUR] Le fichier '%s' est inexistant!" % validate_input[1]
+                return
+
+            try:
+                self.write_dem_srs()
+                self.write_water_srs()
+                self.write_wetland_srs()
+            except:
+                print "Erreur lors de l'obtention du SRS d'un fichier en input"
+                return
+
+
+            if self.validate.validate_input_spatial_ref_sys([self.dem_srs, self.water_srs, self.wetland_srs]):
+                print "Les fichiers en entrée n'ont pas tous le même système de référence spatial."
+                return
+
+            faucon = peregrineFalcon(self.dlg.demLineEdit.text(), self.dlg.waterLineEdit.text(), self.dlg.wetLandLineEdit.text(), self.dlg.outLineEdit.text(), self.dlg.slopeLineEdit.text(), self.dlg.waterParamLineEdit.text(), self.dlg.wetLandParamLineEdit.text(), "", self.dlg.slopeDegLineEdit.text())
+            faucon.set_gdal_driver()
             faucon.open_input_raster()
             faucon.get_raster_spatial_ref()
-            #faucon.calculate_cliff_area()
+            faucon.get_input_data()
+            faucon.get_input_data()
             faucon.identify_cliffs()
-            faucon.calculate_slope_avg()
-            faucon.rasterize_water()
-            faucon.create_proximity_raster()
-            faucon.calculate_water_area()
+            #faucon.calculate_slope_avg()
+            #faucon.rasterize_water()
+            #faucon.rasterize_wetland()
+            #faucon.calculate_water_area()
+            #faucon.calculate_wetland_area()
+            #faucon.calculate_slope_area()
+            #faucon.manage_threshold_values()
+            #faucon.create_proximity_raster("wetland")
+            #faucon.create_proximity_raster("water")
+            print "------ FIN -------"
 
 
+
+
+    def write_dem_srs(self):
+        print "------"
+        print str(self.dlg.demLineEdit.text())
+        print self.validate.validate_input([self.dlg.demLineEdit.text()])
+        print "-----"
+        if (self.validate.validate_input([self.dlg.demLineEdit.text()])[0]):
+            self.write_input_srs("dem", "dem", self.dlg.demLineEdit.text())
+
+    def write_water_srs(self):
+        if (self.validate.validate_input([self.dlg.waterLineEdit.text()])[0]):
+            self.write_input_srs("water", "shp", self.dlg.waterLineEdit.text())
+
+    def write_wetland_srs(self):
+        if (self.validate.validate_input([self.dlg.wetLandLineEdit.text()])[0]):
+            self.write_input_srs("wetland", "shp", self.dlg.wetLandLineEdit.text())
+
+    def write_input_srs(self, name, type, input):
+
+        if (input != None) or (input != ""):
+            if (name == "dem"):
+                # Obtenir le SRS
+                self.dem_srs = self.validate.get_spatial_ref_sys(type, input)
+
+                # Écriture des labels
+                self.dlg.demSrsLabel.setText(self.dem_srs[0])
+                self.dlg.demUnitLabel.setText(self.dem_srs[2])
+
+            if (name == "water"):
+                # Obtenir le SRS
+                self.water_srs = self.validate.get_spatial_ref_sys(type, input)
+
+                # Écriture des labels
+                self.dlg.waterSrsLabel.setText(self.water_srs[0] )
+                self.dlg.waterUnitLabel.setText(self.water_srs[2])
+
+            if (name == "wetland"):
+                # Obtenir le SRS
+                self.wetland_srs = self.validate.get_spatial_ref_sys(type, input)
+
+                # Écriture des labels
+                self.dlg.wetlandSrsLabel.setText(self.wetland_srs[0])
+                self.dlg.wetlandUnitLabel.setText(self.wetland_srs[2])
 
 
 
     def select_dem_file(self):
-        input_dem = QFileDialog.getOpenFileName(self.dlg, "Selectionnez un fichier TIF", r"", '*.tif')
-        self.dlg.demLineEdit.setText(input_dem)
+        # Choisir un fichier
+        self.input_dem = QFileDialog.getOpenFileName(self.dlg, "Selectionnez un fichier TIF", r"", '*.tif')
+        self.dlg.demLineEdit.setText(self.input_dem)
+        print self.input_dem
+
+        if self.input_dem != "":
+            self.write_input_srs("dem", "dem", self.input_dem)
+
+
 
     def select_water_file(self):
-        input_water = QFileDialog.getOpenFileName(self.dlg, "Selectionnez un fichier SHP", r"", '*.shp')
-        self.dlg.waterLineEdit.setText(input_water)
+        # Choisir un fichier
+        self.input_water = QFileDialog.getOpenFileName(self.dlg, "Selectionnez un fichier SHP", r"", '*.shp')
+        self.dlg.waterLineEdit.setText(self.input_water)
+
+        if self.input_water != "":
+            self.write_input_srs("water", "shp", self.input_water)
+
+
+
+    def select_wetland_file(self):
+        # Choisir un fichier
+        self.input_wetland = QFileDialog.getOpenFileName(self.dlg, "Selectionnez un fichier SHP", r"", '*.shp')
+        self.dlg.wetLandLineEdit.setText(self.input_wetland)
+
+        if self.input_wetland != "":
+            self.write_input_srs("wetland", "shp", self.input_wetland)
+
+
 
     def select_output_folder(self):
         output_file = QFileDialog.getSaveFileName(self.dlg, "Selectionnez un emplacement de sortie", r"", "*.tif")
         self.dlg.outLineEdit.setText(output_file)
-
-
-#    def show_param_values(self, input_value, targetLineEdit):
-#        self.dlg.targetLineEdit.setText(str(input_value))
-
 
     def show_slope_area_value(self):
         slope_value = self.dlg.slopeAreaSlider.value()
@@ -287,5 +402,22 @@ class PeregrineFalcon:
         self.dlg.wetLandParamLineEdit.setText(str(wet_land_value))
 
 
+
     def show_help(self):
+        pass
+
+
+    def validate_input_dem(self):
+        pass
+
+
+    def validate_input_water(self):
+        pass
+
+
+    def validate_input_wetland(self):
+        pass
+
+
+    def validate_output(self):
         pass
