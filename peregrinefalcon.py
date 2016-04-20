@@ -96,6 +96,7 @@ class PeregrineFalcon:
         self.dlg.waterLineEdit.editingFinished.connect(self.write_water_srs)
         self.dlg.wetLandLineEdit.editingFinished.connect(self.write_wetland_srs)
 
+
         self.dlg.slopeAreaSlider.setMinimum(2)
         self.dlg.slopeAreaSlider.setMaximum(1000)
 
@@ -128,10 +129,10 @@ class PeregrineFalcon:
 
 
         ####### VALEURS TEMPORAIRES POUR DEBUG ################
-        self.dlg.demLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/larouche_slopeq2.tif")
-        self.dlg.waterLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/waterbody_2.shp")
+        self.dlg.demLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/proj/larouche_slopeq_m.tif")
+        self.dlg.waterLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/proj/waterbody_3.shp")
         self.dlg.outLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/out_data/')
-        self.dlg.wetLandLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/saturated_soil_2.shp')
+        self.dlg.wetLandLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/proj/saturated_soil_2.shp')
 
         ###################################
 
@@ -268,7 +269,7 @@ class PeregrineFalcon:
 
             validate_input = self.validate.validate_input([self.input_dem, self.input_water, self.input_wetland])
             if (validate_input[0] == False):
-                print "[ERREUR] Le fichier '%s' est inexistant!" % validate_input[1]
+                print validate_input[2]
                 return
 
             try:
@@ -279,18 +280,26 @@ class PeregrineFalcon:
                 print "Erreur lors de l'obtention du SRS d'un fichier en input"
                 return
 
+            # VALIDATION DU SYSTÈME DE RÉFÉRENCE SPATIAL
+            #if (self.validate.validate_input_spatial_ref_sys([self.dem_srs, self.water_srs, self.wetland_srs]) == False):
+            #    print "Les fichiers en entrée n'ont pas tous le même système de référence spatial."
+            #    return
 
-            if self.validate.validate_input_spatial_ref_sys([self.dem_srs, self.water_srs, self.wetland_srs]):
-                print "Les fichiers en entrée n'ont pas tous le même système de référence spatial."
+            validate_output = self.validate.validate_output(self.dlg.outLineEdit.text())
+            if (validate_output[0] == False):
+                print validate_output[2]
                 return
 
+
+            print "------- Début ------------"
             faucon = peregrineFalcon(self.dlg.demLineEdit.text(), self.dlg.waterLineEdit.text(), self.dlg.wetLandLineEdit.text(), self.dlg.outLineEdit.text(), self.dlg.slopeLineEdit.text(), self.dlg.waterParamLineEdit.text(), self.dlg.wetLandParamLineEdit.text(), "", self.dlg.slopeDegLineEdit.text())
             faucon.set_gdal_driver()
             faucon.open_input_raster()
             faucon.get_raster_spatial_ref()
             faucon.get_input_data()
             faucon.get_input_data()
-            faucon.identify_cliffs()
+
+            #faucon.identify_cliffs()
             #faucon.calculate_slope_avg()
             #faucon.rasterize_water()
             #faucon.rasterize_wetland()
@@ -306,24 +315,38 @@ class PeregrineFalcon:
 
 
     def write_dem_srs(self):
-        print "------"
-        print str(self.dlg.demLineEdit.text())
-        print self.validate.validate_input([self.dlg.demLineEdit.text()])
-        print "-----"
-        if (self.validate.validate_input([self.dlg.demLineEdit.text()])[0]):
-            self.write_input_srs("dem", "dem", self.dlg.demLineEdit.text())
+        validate_input = self.validate.validate_input([self.dlg.demLineEdit.text(), "", ""])[0]
+        if (validate_input):
+            self.write_input_srs("dem", "dem", str(self.dlg.demLineEdit.text()))
+        else:
+            self.dlg.demSrsLabel.setText("")
+            self.dlg.demUnitLabel.setText("")
+
+
 
     def write_water_srs(self):
-        if (self.validate.validate_input([self.dlg.waterLineEdit.text()])[0]):
-            self.write_input_srs("water", "shp", self.dlg.waterLineEdit.text())
+        validate_input = self.validate.validate_input(["", self.dlg.waterLineEdit.text(), ""])[0]
+        if (validate_input):
+            self.write_input_srs("water", "shp", str(self.dlg.waterLineEdit.text()))
+        else:
+            self.dlg.waterSrsLabel.setText("")
+            self.dlg.waterUnitLabel.setText("")
+
+
 
     def write_wetland_srs(self):
-        if (self.validate.validate_input([self.dlg.wetLandLineEdit.text()])[0]):
-            self.write_input_srs("wetland", "shp", self.dlg.wetLandLineEdit.text())
+        validate_input = self.validate.validate_input(["", "", self.dlg.wetLandLineEdit.text()])[0]
+        if (validate_input):
+            self.write_input_srs("wetland", "shp", str(self.dlg.wetLandLineEdit.text()))
+        else:
+            self.dlg.wetlandSrsLabel.setText("")
+            self.dlg.wetlandUnitLabel.setText("")
+
+
 
     def write_input_srs(self, name, type, input):
 
-        if (input != None) or (input != ""):
+        if (input != None) and (input != ""):
             if (name == "dem"):
                 # Obtenir le SRS
                 self.dem_srs = self.validate.get_spatial_ref_sys(type, input)
@@ -385,6 +408,8 @@ class PeregrineFalcon:
         output_file = QFileDialog.getSaveFileName(self.dlg, "Selectionnez un emplacement de sortie", r"", "*.tif")
         self.dlg.outLineEdit.setText(output_file)
 
+
+
     def show_slope_area_value(self):
         slope_value = self.dlg.slopeAreaSlider.value()
         self.dlg.slopeLineEdit.setText(str(slope_value))
@@ -418,6 +443,3 @@ class PeregrineFalcon:
     def validate_input_wetland(self):
         pass
 
-
-    def validate_output(self):
-        pass

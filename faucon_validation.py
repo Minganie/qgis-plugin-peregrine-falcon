@@ -22,28 +22,74 @@ class validation:
 
 
 
-
+    # Retourne False si il y a un problème avec le fichier en entrée, avec le nom du fichier et le message d'erreur
+    # Sous la form [Bool, "filename", "message"]
     def validate_input(self, inputs):
 
         for i, input in enumerate(inputs):
-            print i
-            print input
 
-            # Vérifier si le fichier existe.
-            if (os.path.exists(str(input))):
-                pass
+            if (input != ""):
 
-            else:
+                # Vérifier si le fichier existe.
+                if not (os.path.exists(str(input))):
+                    return [False, input, "[ERREUR] Le fichier '%s' n'existe pas!" % input]
 
-                return [False, input, "[ERREUR] Le fichier '%s' n'existe pas! % input"]
+                # Vérifier la validité du raster en entrée
+                if (i == 0):
+                    if not (self.validate_raster(input)):
+                        return [False, input, "[ERREUR] Le fichier '%s' n'est pas un raster GTiff valide!" % input]
 
+                # Vérifier la validité des shapefiles (polygones)
+                if (i >= 1):
+                    if (self.validate_polygons(input) == False):
+                        return [False, input, "[ERREUR] Le fichier '%s' n'est pas un fichier de polygones!" % input]
+
+        return [True, "", ""]
+
+
+
+
+    def validate_raster(self, input):
+
+        try:
+            input_ds = gdal.Open(input)
+            rasterband = input_ds.GetRasterBand(5)
+        except:
+            return False
+
+        del input_ds, rasterband
         return True
 
 
 
 
 
+    def validate_polygons(self, input):
+        try:
+            input_ds = self.ogr_driver.Open(input)
+            input_lyr = input_ds.GetLayer()
+        except:
+            return False
 
+        for feature in input_lyr:
+            validate_feature = feature.GetGeometryRef()
+
+            if (validate_feature.GetGeometryType() != 3):
+                return False
+
+        del validate_feature, input_ds, input_lyr
+        return True
+
+
+
+
+    def validate_output(self, output):
+        if (output.strip() != "") and (output != None):
+            if not (os.path.exists(output)):
+                return [False, output, "[ERREUR] Le chemin %s n'existe pas!" % output]
+
+            if not (os.access(output, os.W_OK)):
+                return [False, output, "[ERREUR] Impossible d'écrire dans le chemin de sortie!"]
 
 
 
@@ -53,7 +99,7 @@ class validation:
     def get_spatial_ref_sys(self, type, input):
 
         # Si l'input est un raster
-        if (input != None):
+        if (input != None) and (input != ""):
             if (type == "dem"):
                 # Ouverture de l'input avec GDAL
                 input_ds = gdal.Open(input)
@@ -71,12 +117,14 @@ class validation:
 
             srs = osr.SpatialReference(wktprj)
 
-            # Obtenir le code EPSG de la projection
+            # Écriture de l'information sur le SRS
             if (srs.IsProjected()):
-                return [srs.GetAttrValue('PROJCS'), srs.GetAttrValue('AUTHORITY', 1), srs.GetAttrValue('UNIT')]
+                return_value = [srs.GetAttrValue('PROJCS'), srs.GetAttrValue('AUTHORITY', 1), srs.GetAttrValue('UNIT')]
             else:
-                return [srs.GetAttrValue('GEOGCS'), srs.GetAttrValue('AUTHORITY', 1), srs.GetAttrValue('UNIT')]
+                return_value = [srs.GetAttrValue('GEOGCS'), srs.GetAttrValue('AUTHORITY', 1), srs.GetAttrValue('UNIT')]
 
+            del input_ds
+            return return_value
 
 
 
@@ -85,6 +133,7 @@ class validation:
 
 
     def validate_input_spatial_ref_sys(self, inputs):
+
         if (inputs[0][1] == inputs[1][1] == inputs[2][1]):
             return True
         else:

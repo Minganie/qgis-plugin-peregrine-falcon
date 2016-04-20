@@ -5,7 +5,7 @@
 ###### Vérifier si le OS est Windows
 
 
-from osgeo import gdal, ogr
+import gdal, ogr
 from gdalconst import *
 import numpy
 import scipy.ndimage
@@ -519,7 +519,6 @@ class peregrineFalcon:
 
 
 
-
     def manage_threshold_values(self):
         pass
         #
@@ -573,8 +572,8 @@ class peregrineFalcon:
 
 
 
-# Faire un genre d'indexation pour accélérer les traitements?
-# Création d'une
+# Robustesse du validage en entrée du SRS
+# Comment faire le in memory ??
 
 
 
