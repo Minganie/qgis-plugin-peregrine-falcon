@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>474</width>
-    <height>602</height>
+    <width>475</width>
+    <height>740</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>310</x>
-     <y>560</y>
+     <y>700</y>
      <width>161</width>
      <height>41</height>
     </rect>
@@ -35,7 +35,7 @@
      <x>0</x>
      <y>10</y>
      <width>471</width>
-     <height>101</height>
+     <height>201</height>
     </rect>
    </property>
    <property name="title">
@@ -84,7 +84,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>60</y>
+      <y>80</y>
       <width>451</width>
       <height>31</height>
      </rect>
@@ -119,14 +119,209 @@
      </item>
     </layout>
    </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget_8">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>140</y>
+      <width>451</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_8">
+     <item>
+      <widget class="QLabel" name="wetInLabel">
+       <property name="text">
+        <string>Milieux humides:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="wetLandLineEdit">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="wetLandPushButton">
+       <property name="maximumSize">
+        <size>
+         <width>35</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>60</y>
+      <width>41</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>SRS:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="demSrsLabel">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>60</y>
+      <width>241</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>60</y>
+      <width>57</width>
+      <height>14</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Unités:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="demUnitLabel">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>60</y>
+      <width>57</width>
+      <height>14</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="waterSrsLabel">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>120</y>
+      <width>261</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>120</y>
+      <width>57</width>
+      <height>14</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Unités:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>120</y>
+      <width>41</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>SRS:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="waterUnitLabel">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>120</y>
+      <width>57</width>
+      <height>14</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="wetlandSrsLabel">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>180</y>
+      <width>271</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>180</y>
+      <width>57</width>
+      <height>14</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Unités:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>180</y>
+      <width>41</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>SRS:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="wetlandUnitLabel">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>180</y>
+      <width>57</width>
+      <height>14</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
   </widget>
   <widget class="QGroupBox" name="paramGroupBox">
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>190</y>
+     <y>300</y>
      <width>471</width>
-     <height>171</height>
+     <height>201</height>
     </rect>
    </property>
    <property name="title">
@@ -136,7 +331,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>130</y>
+      <y>160</y>
       <width>451</width>
       <height>31</height>
      </rect>
@@ -145,7 +340,7 @@
      <item>
       <widget class="QLabel" name="slopeDegLabel">
        <property name="text">
-        <string>Importance de la pente (degrés):</string>
+        <string>Inclinaison de la pente (degrés):</string>
        </property>
       </widget>
      </item>
@@ -223,7 +418,7 @@
      <item>
       <widget class="QLabel" name="waterAreaLabel">
        <property name="text">
-        <string>Superficie des étendues d'eau</string>
+        <string>Superficie des étendues d'eau:</string>
        </property>
       </widget>
      </item>
@@ -253,7 +448,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>80</y>
+      <y>110</y>
       <width>451</width>
       <height>31</height>
      </rect>
@@ -279,7 +474,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>110</y>
+      <y>140</y>
       <width>451</width>
       <height>20</height>
      </rect>
@@ -288,12 +483,51 @@
      <enum>Qt::Horizontal</enum>
     </property>
    </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget_7">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>80</y>
+      <width>451</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_7">
+     <item>
+      <widget class="QLabel" name="wetLandAreaLabel">
+       <property name="text">
+        <string>Superficie des milieux humides:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSlider" name="wetLandAreaSlider">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="wetLandParamLineEdit">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>40</width>
+         <height>16777215</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <widget class="QGroupBox" name="outputGroupBox">
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>120</y>
+     <y>220</y>
      <width>471</width>
      <height>61</height>
     </rect>
@@ -354,7 +588,7 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>370</y>
+     <y>510</y>
      <width>471</width>
      <height>181</height>
     </rect>
@@ -393,7 +627,7 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>560</y>
+     <y>700</y>
      <width>81</width>
      <height>31</height>
     </rect>
