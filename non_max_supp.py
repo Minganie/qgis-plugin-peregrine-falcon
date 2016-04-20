@@ -45,10 +45,8 @@ class NonMaxSupp:
                           'properties': {}}
                 with fiona.open(r"out_data/cliffs.shp", 'w', driver='ESRI Shapefile', crs=src.crs, schema=schema) as c:
                     for coord in coordinates:
-                        print(len(c))
                         record['geometry']['coordinates'] = coord
                         c.write(record)
-                        print(len(c))
 
 def main():
     try:
