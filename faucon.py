@@ -11,8 +11,15 @@ import numpy
 import scipy.ndimage
 import scipy.stats
 import os
+from communications import communications
 
 
+from qgis import core
+from qgis import *
+from qgis.gui import QgisInterface, QgsMessageBar
+
+from PyQt4.QtGui import QProgressBar
+from PyQt4.QtCore import *
 
 
 class peregrineFalcon:
@@ -31,7 +38,10 @@ class peregrineFalcon:
 
 
 
-    def __init__(self, input_raster, input_water, input_wetland, output_path, slope_area, water_area, wetland_area, units, slope_deg):
+
+
+
+    def __init__(self, iface, communications, progress, input_raster, input_water, input_wetland, output_path, slope_area, water_area, wetland_area, units, slope_deg):
         self.input_raster = input_raster
         self.input_water = input_water
         self.input_wetland = input_wetland
@@ -41,15 +51,14 @@ class peregrineFalcon:
         self.wetland_area = wetland_area
         self.units = units
         self.slope_deg = slope_deg
+        self.iface = iface
+        self.progress = progress
 
-        print "\n\nPlugin PeregrineFalcon\n\n"
-
-
+        self.communications = communications
 
 
     def set_gdal_driver(self):
         self.writeDriver = gdal.GetDriverByName('GTiff')
-
 
 
 
@@ -62,11 +71,10 @@ class peregrineFalcon:
 
 
     def get_input_data(self):
+        self.communications.show_message("info", u"Obtenir un array numpy du raster en entrée")
         print "Obtenir un array numpy du raster en entrée\n"
         input_raster_band1 = self.input_ds.GetRasterBand(1)
         self.input_data = input_raster_band1.ReadAsArray(0,0, self.cols, self.rows)
-
-
 
 
 
@@ -102,6 +110,17 @@ class peregrineFalcon:
             print minx, maxy, maxx, miny
         else:
             print "Impossible d'ouvrir le fichier '%s'" % self.input_raster
+
+
+
+
+
+    def get_coordinate_from_xy(self, x, y):
+        minx = self.input_geot[0]
+        maxy = self.input_geot[3]
+        cordx = minx + self.input_geot[1]*x
+        cordy = maxy + self.input_geot[5]*y
+        print cordx, cordy
 
 
 
@@ -572,9 +591,11 @@ class peregrineFalcon:
 
 
 
-# Robustesse du validage en entrée du SRS
-# Comment faire le in memory ??
 
+# Comment faire le in memory ??
+    #memory layer
+
+#module qgis
 
 
 

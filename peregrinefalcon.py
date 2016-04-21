@@ -20,18 +20,20 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
-from PyQt4.QtGui import QAction, QIcon, QFileDialog
+from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
+from PyQt4.QtGui import QAction, QIcon, QFileDialog, QProgressBar, QFrame
 # Initialize Qt resources from file resources.py
 import resources
 # Import the code for the dialog
 from peregrinefalcon_dialog import PeregrineFalconDialog
+from communications import communications
 
-
+import time
 import os.path
 
 from faucon import peregrineFalcon
 from faucon_validation import validation
+
 
 class PeregrineFalcon:
     """QGIS Plugin Implementation."""
@@ -82,7 +84,13 @@ class PeregrineFalcon:
         self.input_dem = ""
 
 
-        self.validate = validation()
+        # Initialiser la progress bar
+        self.progressMessageBar = self.iface.messageBar().createMessage("Plugin PeregrinFalcon: Traitements en cours...")
+        self.progress = QProgressBar()
+        self.progress.setMaximum(15)
+        self.progress.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
+        self.progressMessageBar.layout().addWidget(self.progress)
+
 
         #######
 
@@ -125,6 +133,10 @@ class PeregrineFalcon:
         self.dlg.slopeDegSlider.setValue(40)
         self.dlg.pixelRadioButton.setChecked(True)
 
+
+        # Initialisation des classes de communication et de validation
+        self.communications = communications(self.iface, self.progress, self.progressMessageBar)
+        self.validate = validation(self.iface, self.communications)
 
 
 
@@ -263,15 +275,24 @@ class PeregrineFalcon:
         if result:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
+
+            # Initialisation de la barre de progrès
+            self.iface.messageBar().pushWidget(self.progressMessageBar, self.iface.messageBar().INFO)
+
+            # Régler les variables avec les fichiesr
             self.input_dem = self.dlg.demLineEdit.text()
             self.input_water = self.dlg.waterLineEdit.text()
             self.input_wetland = self.dlg.wetLandLineEdit.text()
 
+
+            # Validation des fichiers en entrée
             validate_input = self.validate.validate_input([self.input_dem, self.input_water, self.input_wetland])
             if (validate_input[0] == False):
                 print validate_input[2]
                 return
 
+
+            # Obtenir les système de référence spatial des fichiers en entrée
             try:
                 self.write_dem_srs()
                 self.write_water_srs()
@@ -280,37 +301,68 @@ class PeregrineFalcon:
                 print "Erreur lors de l'obtention du SRS d'un fichier en input"
                 return
 
-            # VALIDATION DU SYSTÈME DE RÉFÉRENCE SPATIAL
-            #if (self.validate.validate_input_spatial_ref_sys([self.dem_srs, self.water_srs, self.wetland_srs]) == False):
-            #    print "Les fichiers en entrée n'ont pas tous le même système de référence spatial."
-            #    return
 
+            # Validation du système de référence spatial des fichiers en entrée
+            print len(self.dem_srs), len(self.water_srs), len(self.wetland_srs)
+            if (self.validate.validate_input_spatial_ref_sys([self.dem_srs[3], self.water_srs[3], self.wetland_srs[3]]) == False):
+                print "Les fichiers en entrée n'ont pas tous le même système de référence spatial."
+                return
+
+
+            # Validation du chemin en sortie
             validate_output = self.validate.validate_output(self.dlg.outLineEdit.text())
             if (validate_output[0] == False):
                 print validate_output[2]
                 return
 
 
+
+
+
+            # Début des traitements
             print "------- Début ------------"
-            faucon = peregrineFalcon(self.dlg.demLineEdit.text(), self.dlg.waterLineEdit.text(), self.dlg.wetLandLineEdit.text(), self.dlg.outLineEdit.text(), self.dlg.slopeLineEdit.text(), self.dlg.waterParamLineEdit.text(), self.dlg.wetLandParamLineEdit.text(), "", self.dlg.slopeDegLineEdit.text())
+            self.progress.setValue(1)
+            faucon = peregrineFalcon(self.iface, self.communications, self.progress, self.dlg.demLineEdit.text(), self.dlg.waterLineEdit.text(), self.dlg.wetLandLineEdit.text(), self.dlg.outLineEdit.text(), self.dlg.slopeLineEdit.text(), self.dlg.waterParamLineEdit.text(), self.dlg.wetLandParamLineEdit.text(), "", self.dlg.slopeDegLineEdit.text())
             faucon.set_gdal_driver()
+            self.progress.setValue(2)
             faucon.open_input_raster()
+            self.progress.setValue(3)
             faucon.get_raster_spatial_ref()
+            self.progress.setValue(4)
             faucon.get_input_data()
-            faucon.get_input_data()
-
-            #faucon.identify_cliffs()
+            self.progress.setValue(5)
+            faucon.identify_cliffs()
+            self.progress.setValue(6)
+            #faucon.get_coordinate_from_xy(400, 460)
             #faucon.calculate_slope_avg()
+            self.progress.setValue(7)
             #faucon.rasterize_water()
+            self.progress.setValue(8)
             #faucon.rasterize_wetland()
+            self.progress.setValue(9)
             #faucon.calculate_water_area()
+            self.progress.setValue(10)
             #faucon.calculate_wetland_area()
+            self.progress.setValue(11)
             #faucon.calculate_slope_area()
-            #faucon.manage_threshold_values()
-            #faucon.create_proximity_raster("wetland")
-            #faucon.create_proximity_raster("water")
-            print "------ FIN -------"
+            self.progress.setValue(12)
 
+            #faucon.manage_threshold_values()
+            self.progress.setValue(13)
+            #faucon.create_proximity_raster("wetland")
+            self.progress.setValue(14)
+            #self.communications.show_message("info", u"Traitements terminés!")
+            #faucon.create_proximity_raster("water")
+            self.progress.setValue(15)
+
+            # Pour une raison quelconque, on doit lancer cet instruction 2 fois pour que le message s'affiche (à cause du time.sleep)
+            self.communications.show_message("info", u"Traitements terminés!")
+            self.communications.show_message("info", u"Traitements terminés!")
+
+            # Attendre 3 secondes avant d'effacer le contenu de la Status Bar et d'enlever la Message Bar
+            time.sleep(3)
+            self.iface.messageBar().clearWidgets()
+            self.iface.mainWindow().statusBar().clearMessage()
 
 
 
@@ -349,7 +401,7 @@ class PeregrineFalcon:
         if (input != None) and (input != ""):
             if (name == "dem"):
                 # Obtenir le SRS
-                self.dem_srs = self.validate.get_spatial_ref_sys(type, input)
+                self.dem_srs = self.validate.get_spatial_ref_sys(name, input)
 
                 # Écriture des labels
                 self.dlg.demSrsLabel.setText(self.dem_srs[0])
@@ -357,7 +409,7 @@ class PeregrineFalcon:
 
             if (name == "water"):
                 # Obtenir le SRS
-                self.water_srs = self.validate.get_spatial_ref_sys(type, input)
+                self.water_srs = self.validate.get_spatial_ref_sys(name, input)
 
                 # Écriture des labels
                 self.dlg.waterSrsLabel.setText(self.water_srs[0] )
@@ -365,7 +417,7 @@ class PeregrineFalcon:
 
             if (name == "wetland"):
                 # Obtenir le SRS
-                self.wetland_srs = self.validate.get_spatial_ref_sys(type, input)
+                self.wetland_srs = self.validate.get_spatial_ref_sys(name, input)
 
                 # Écriture des labels
                 self.dlg.wetlandSrsLabel.setText(self.wetland_srs[0])
@@ -425,6 +477,10 @@ class PeregrineFalcon:
     def show_wet_land_value(self):
         wet_land_value = self.dlg.wetLandAreaSlider.value()
         self.dlg.wetLandParamLineEdit.setText(str(wet_land_value))
+
+
+
+
 
 
 
