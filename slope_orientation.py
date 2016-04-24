@@ -1,26 +1,24 @@
 # -*- coding: utf-8 -*-
 
-import rasterio
 import getopt
 import sys
-from qgis.core import *
+import processing
 
 
 class SlopeOrientation:
 
-    def __init__(self, dem):
+    def __init__(self, dem, out_layer):
         print "Entering SlopeOrientation"
-        with rasterio.drivers():
-            with rasterio.open(dem) as src:
-                grey = src.read()[0]
-                #ALGORITHM: Aspect
-	# INPUT <ParameterRaster>
-	# BAND <ParameterNumber>
-	# COMPUTE_EDGES <ParameterBoolean>
-	# ZEVENBERGEN <ParameterBoolean>
-	# TRIG_ANGLE <ParameterBoolean>
-	# ZERO_FLAT <ParameterBoolean>
-	# OUTPUT <OutputRaster>
+
+        #ALGORITHM: Aspect
+            # INPUT <ParameterRaster>
+            # BAND <ParameterNumber>
+            # COMPUTE_EDGES <ParameterBoolean>
+            # ZEVENBERGEN <ParameterBoolean>
+            # TRIG_ANGLE <ParameterBoolean>
+            # ZERO_FLAT <ParameterBoolean>
+            # OUTPUT <OutputRaster>
+        processing.runalg("gdalogr:aspect", dem, 1, False, False, False, False, out_layer)
 
 def main():
     try:

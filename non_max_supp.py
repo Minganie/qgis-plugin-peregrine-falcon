@@ -35,17 +35,17 @@ class NonMaxSupp:
                 points.append([slice[0].start+0.5, slice[1].start+0.5])
 
         driver = ogr.GetDriverByName("ESRI Shapefile")
-        if os.path.exists(r"C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\out_data\cliffs.shp"):
-            driver.DeleteDataSource(r"C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\out_data\cliffs.shp")
-        shapeData = driver.CreateDataSource(r"C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\out_data\cliffs.shp")
+        if os.path.exists(r"E:\INFO\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\out_data\cliffs.shp"):
+            driver.DeleteDataSource(r"E:\INFO\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\out_data\cliffs.shp")
+        shapeData = driver.CreateDataSource(r"E:\INFO\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\out_data\cliffs.shp")
 
         out_layer = shapeData.CreateLayer("cliffs", geom_type=ogr.wkbPoint)
 
         # Write projection file
         spatial_ref = source.GetProjection()
-        file = open(r"C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\out_data\cliffs.prj", 'w')
-        file.write(spatial_ref)
-        file.close()
+        file_handle = open(r"E:\INFO\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\out_data\cliffs.prj", 'w')
+        file_handle.write(spatial_ref)
+        file_handle.close()
 
         affine = source.GetGeoTransform()
 
