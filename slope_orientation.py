@@ -2,7 +2,8 @@
 
 import getopt
 import sys
-import processing
+
+
 
 
 class SlopeOrientation:

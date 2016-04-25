@@ -21,7 +21,7 @@
  ***************************************************************************/
 """
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
-from PyQt4.QtGui import QAction, QIcon, QFileDialog, QProgressBar, QFrame
+from PyQt4.QtGui import QAction, QIcon, QFileDialog, QProgressBar
 # Initialize Qt resources from file resources.py
 import resources
 # Import the code for the dialog
@@ -83,14 +83,9 @@ class PeregrineFalcon:
         self.input_water = ""
         self.input_dem = ""
 
+        self.plugin_name = "PeregrineFalcon"
 
-        # Initialiser la progress bar
-        self.progressMessageBar = self.iface.messageBar().createMessage("Plugin PeregrinFalcon: Traitements en cours...")
-        self.progress = QProgressBar()
-        self.progress.setMaximum(15)
-        self.progress.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
-        self.progressMessageBar.layout().addWidget(self.progress)
-
+        self.initialize_progress_bar()
 
         #######
 
@@ -135,13 +130,13 @@ class PeregrineFalcon:
 
 
         # Initialisation des classes de communication et de validation
-        self.communications = communications(self.iface, self.progress, self.progressMessageBar)
-        self.validate = validation(self.iface, self.communications)
+        self.communications = communications(self.iface, self.progress, self.progressMessageBar, self.plugin_name)
+        self.validate = validation(self.iface, self.communications, self.plugin_name)
 
 
 
         ####### VALEURS TEMPORAIRES POUR DEBUG ################
-        self.dlg.demLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/proj/larouche_slopeq_m.tif")
+        self.dlg.demLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/proj/dem_highres_proj.tif")
         self.dlg.waterLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/proj/waterbody_3.shp")
         self.dlg.outLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/out_data/')
         self.dlg.wetLandLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/proj/saturated_soil_2.shp')
@@ -254,6 +249,7 @@ class PeregrineFalcon:
             parent=self.iface.mainWindow())
 
 
+
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
@@ -266,20 +262,30 @@ class PeregrineFalcon:
 
 
     def run(self):
-        """Run method that performs all the real work"""
         # show the dialog
         self.dlg.show()
+
+        # Initialiser la Progress Bar
+        self.initialize_progress_bar()
+
         # Run the dialog event loop
         result = self.dlg.exec_()
+
         # See if OK was pressed
         if result:
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
+
+            self.communications.write_qgis_logs("info", u"Bouton OK cliqué!")
 
             # Initialisation de la barre de progrès
+            self.iface.messageBar().clearWidgets()
+            self.iface.mainWindow().statusBar().clearMessage()
+
             self.iface.messageBar().pushWidget(self.progressMessageBar, self.iface.messageBar().INFO)
 
-            # Régler les variables avec les fichiesr
+
+
+
+            # Régler les variables avec le chemin des fichiers en entrée
             self.input_dem = self.dlg.demLineEdit.text()
             self.input_water = self.dlg.waterLineEdit.text()
             self.input_wetland = self.dlg.wetLandLineEdit.text()
@@ -287,8 +293,7 @@ class PeregrineFalcon:
 
             # Validation des fichiers en entrée
             validate_input = self.validate.validate_input([self.input_dem, self.input_water, self.input_wetland])
-            if (validate_input[0] == False):
-                print validate_input[2]
+            if (validate_input == False):
                 return
 
 
@@ -298,21 +303,18 @@ class PeregrineFalcon:
                 self.write_water_srs()
                 self.write_wetland_srs()
             except:
-                print "Erreur lors de l'obtention du SRS d'un fichier en input"
+                self.communications.show_message("critical", u"[ERREUR] Erreur lors de l'obtention du SRS d'un fichier en entrée.")
                 return
 
 
             # Validation du système de référence spatial des fichiers en entrée
-            print len(self.dem_srs), len(self.water_srs), len(self.wetland_srs)
             if (self.validate.validate_input_spatial_ref_sys([self.dem_srs[3], self.water_srs[3], self.wetland_srs[3]]) == False):
-                print "Les fichiers en entrée n'ont pas tous le même système de référence spatial."
                 return
 
 
             # Validation du chemin en sortie
             validate_output = self.validate.validate_output(self.dlg.outLineEdit.text())
-            if (validate_output[0] == False):
-                print validate_output[2]
+            if (validate_output == False):
                 return
 
 
@@ -320,54 +322,71 @@ class PeregrineFalcon:
 
 
             # Début des traitements
-            print "------- Début ------------"
-            self.progress.setValue(1)
+            self.communications.write_qgis_logs("info", u"\nDébut des traitements\n")
+            self.set_progress_bar_value(1)
             faucon = peregrineFalcon(self.iface, self.communications, self.progress, self.dlg.demLineEdit.text(), self.dlg.waterLineEdit.text(), self.dlg.wetLandLineEdit.text(), self.dlg.outLineEdit.text(), self.dlg.slopeLineEdit.text(), self.dlg.waterParamLineEdit.text(), self.dlg.wetLandParamLineEdit.text(), "", self.dlg.slopeDegLineEdit.text())
             faucon.set_gdal_driver()
-            self.progress.setValue(2)
-            faucon.open_input_raster()
-            self.progress.setValue(3)
-            faucon.get_raster_spatial_ref()
-            self.progress.setValue(4)
+            self.set_progress_bar_value(2)
+            faucon.open_input_dem()
+            self.set_progress_bar_value(3)
+            faucon.get_dem_spatial_ref()
+            self.set_progress_bar_value(4)
+            faucon.dem_to_slopes()
+            self.set_progress_bar_value(5)
+            faucon.dem_to_aspect()
+            faucon.aspect_reclass()
             faucon.get_input_data()
-            self.progress.setValue(5)
+            self.set_progress_bar_value(6)
             faucon.identify_cliffs()
-            self.progress.setValue(6)
-            #faucon.get_coordinate_from_xy(400, 460)
-            #faucon.calculate_slope_avg()
-            self.progress.setValue(7)
-            #faucon.rasterize_water()
-            self.progress.setValue(8)
-            #faucon.rasterize_wetland()
-            self.progress.setValue(9)
-            #faucon.calculate_water_area()
-            self.progress.setValue(10)
-            #faucon.calculate_wetland_area()
-            self.progress.setValue(11)
-            #faucon.calculate_slope_area()
-            self.progress.setValue(12)
+            self.set_progress_bar_value(7)
 
-            #faucon.manage_threshold_values()
-            self.progress.setValue(13)
-            #faucon.create_proximity_raster("wetland")
-            self.progress.setValue(14)
-            #self.communications.show_message("info", u"Traitements terminés!")
-            #faucon.create_proximity_raster("water")
-            self.progress.setValue(15)
+            faucon.calculate_slope_avg()
+            self.set_progress_bar_value(8)
+            faucon.rasterize_water()
+            self.set_progress_bar_value(9)
+            faucon.rasterize_wetland()
+            self.set_progress_bar_value(10)
+            faucon.calculate_water_area()
+            self.set_progress_bar_value(11)
+            faucon.calculate_wetland_area()
+            self.set_progress_bar_value(12)
+            faucon.calculate_slope_area()
+            self.set_progress_bar_value(13)
 
-            # Pour une raison quelconque, on doit lancer cet instruction 2 fois pour que le message s'affiche (à cause du time.sleep)
+            self.set_progress_bar_value(14)
+            faucon.create_proximity_raster("wetland")
+            self.set_progress_bar_value(15)
+            faucon.create_proximity_raster("water")
+            self.set_progress_bar_value(16)
+            faucon.results_calculation()
+            faucon.non_max_sup()
             self.communications.show_message("info", u"Traitements terminés!")
-            self.communications.show_message("info", u"Traitements terminés!")
+            self.communications.clear_message_bar_delay()
 
-            # Attendre 3 secondes avant d'effacer le contenu de la Status Bar et d'enlever la Message Bar
-            time.sleep(3)
-            self.iface.messageBar().clearWidgets()
-            self.iface.mainWindow().statusBar().clearMessage()
+            faucon.add_results_to_qgis()
 
+    def set_progress_bar_value(self, value):
+        try:
+            self.progress.setValue(value)
+        except:
+            self.initialize_progress_bar()
+            self.iface.messageBar().pushWidget(self.progressMessageBar, self.iface.messageBar().INFO)
+            self.progress.setValue(value)
+
+    def initialize_progress_bar(self):
+        # Initialiser la progress bar
+        try:
+            self.progressMessageBar = self.iface.messageBar().createMessage("Plugin PeregrinFalcon: Traitements en cours...")
+            self.progress = QProgressBar()
+            self.progress.setMaximum(16)
+            self.progress.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
+            self.progressMessageBar.layout().addWidget(self.progress)
+        except:
+            pass
 
 
     def write_dem_srs(self):
-        validate_input = self.validate.validate_input([self.dlg.demLineEdit.text(), "", ""])[0]
+        validate_input = self.validate.validate_input([self.dlg.demLineEdit.text(), "", ""])
         if (validate_input):
             self.write_input_srs("dem", "dem", str(self.dlg.demLineEdit.text()))
         else:
@@ -377,7 +396,7 @@ class PeregrineFalcon:
 
 
     def write_water_srs(self):
-        validate_input = self.validate.validate_input(["", self.dlg.waterLineEdit.text(), ""])[0]
+        validate_input = self.validate.validate_input(["", self.dlg.waterLineEdit.text(), ""])
         if (validate_input):
             self.write_input_srs("water", "shp", str(self.dlg.waterLineEdit.text()))
         else:
@@ -387,7 +406,7 @@ class PeregrineFalcon:
 
 
     def write_wetland_srs(self):
-        validate_input = self.validate.validate_input(["", "", self.dlg.wetLandLineEdit.text()])[0]
+        validate_input = self.validate.validate_input(["", "", self.dlg.wetLandLineEdit.text()])
         if (validate_input):
             self.write_input_srs("wetland", "shp", str(self.dlg.wetLandLineEdit.text()))
         else:

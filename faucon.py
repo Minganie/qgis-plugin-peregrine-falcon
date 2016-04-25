@@ -8,19 +8,11 @@
 import gdal, ogr
 from gdalconst import *
 import numpy
-import scipy.ndimage
+from scipy import ndimage
 import scipy.stats
 import os
-from communications import communications
-
-
-from qgis import core
-from qgis import *
-from qgis.gui import QgisInterface, QgsMessageBar
-
-from PyQt4.QtGui import QProgressBar
-from PyQt4.QtCore import *
-
+from numpy import ndenumerate
+import processing
 
 class peregrineFalcon:
 
@@ -41,8 +33,8 @@ class peregrineFalcon:
 
 
 
-    def __init__(self, iface, communications, progress, input_raster, input_water, input_wetland, output_path, slope_area, water_area, wetland_area, units, slope_deg):
-        self.input_raster = input_raster
+    def __init__(self, iface, communications, progress, input_dem, input_water, input_wetland, output_path, slope_area, water_area, wetland_area, units, slope_deg):
+        self.input_dem = input_dem
         self.input_water = input_water
         self.input_wetland = input_wetland
         self.output_path = output_path
@@ -51,6 +43,7 @@ class peregrineFalcon:
         self.wetland_area = wetland_area
         self.units = units
         self.slope_deg = slope_deg
+
         self.iface = iface
         self.progress = progress
 
@@ -59,20 +52,19 @@ class peregrineFalcon:
 
     def set_gdal_driver(self):
         self.writeDriver = gdal.GetDriverByName('GTiff')
+        self.communications.write_qgis_logs("info", u"GDAL Driver = GTiff")
 
 
 
-
-
-    def open_input_raster(self):
-        self.input_ds = gdal.Open(self.input_raster)
-
+    # Ouverture du Slope raster fait à partir de slope_to_dem()
+    def open_input_dem(self):
+        self.input_ds = gdal.Open(self.input_dem)
+        self.communications.write_qgis_logs("info", u"Ouverture du raster %s" % self.input_dem)
 
 
 
     def get_input_data(self):
-        self.communications.show_message("info", u"Obtenir un array numpy du raster en entrée")
-        print "Obtenir un array numpy du raster en entrée\n"
+        self.communications.show_message("info", u"Obtenir une matrice du raster en entrée")
         input_raster_band1 = self.input_ds.GetRasterBand(1)
         self.input_data = input_raster_band1.ReadAsArray(0,0, self.cols, self.rows)
 
@@ -83,20 +75,24 @@ class peregrineFalcon:
     ### Obtenir la projection et le geotransform du raster en entrée ###
     ####################################################################
 
-    def get_raster_spatial_ref(self):
+    def get_dem_spatial_ref(self):
 
-        print "Obtenir la projection et le geotransform du raster en entrée\n"
+        self.communications.show_message("info", u"Obtenir la projection et le geotransform du raster en entrée\n")
         if self.input_ds != None:
             # Obtenir la projection de l'image
             self.input_prj = self.input_ds.GetProjection()
+            self.communications.write_qgis_logs("info", u"Projection de " + self.input_dem + ": " + str(self.input_prj))
 
             # Informations sur la position de l'image input et de la taille des pixels
             self.input_geot = self.input_ds.GetGeoTransform()
+            self.communications.write_qgis_logs("info", u"Geotransform de " + self.input_dem + ": " + str(self.input_geot))
 
             # Nombre de colonnes et de rows de l'image en input
             self.cols = self.input_ds.RasterXSize
             self.rows = self.input_ds.RasterYSize
 
+            self.communications.write_qgis_logs("info", u"Nombre de colonnes de " + self.input_dem + ": " + str(self.cols))
+            self.communications.write_qgis_logs("info", u"Nombre de rangées de" + self.input_dem + ": " + str(self.rows))
 
             # Extent
             minx = self.input_geot[0]
@@ -105,22 +101,22 @@ class peregrineFalcon:
             miny = maxy + self.input_geot[5]*self.rows
 
 
-            print self.cols, self.rows
+            self.communications.show_message("info", u"Taille de l'image:" + str(self.cols) + " x " + str(self.rows))
 
-            print minx, maxy, maxx, miny
+            self.communications.write_qgis_logs("info", u"Extent du raster input: " + str(minx) + " " + str(maxy) + " " + str(maxx) + " " + str(miny))
         else:
-            print "Impossible d'ouvrir le fichier '%s'" % self.input_raster
+            self.communications.show_message("critical", "Impossible d'ouvrir le fichier '%s'" % self.input_dem)
 
 
 
 
 
-    def get_coordinate_from_xy(self, x, y):
-        minx = self.input_geot[0]
-        maxy = self.input_geot[3]
-        cordx = minx + self.input_geot[1]*x
-        cordy = maxy + self.input_geot[5]*y
-        print cordx, cordy
+    # def get_coordinate_from_xy(self, x, y):
+    #     minx = self.input_geot[0]
+    #     maxy = self.input_geot[3]
+    #     cordx = minx + self.input_geot[1]*x
+    #     cordy = maxy + self.input_geot[5]*y
+    #     print cordx, cordy
 
 
 
@@ -131,7 +127,7 @@ class peregrineFalcon:
     ##################################################
 
     def input_raster_data(self):
-        print "Obtenir un array numpy du raster en entrée\n"
+        self.communications.show_message("info", u"Obtenir un array numpy du raster en entrée\n")
         input_raster_band1 = self.input_ds.GetRasterBand(1)
 
         return input_raster_band1.ReadAsArray(0,0, self.cols, self.rows)
@@ -143,17 +139,82 @@ class peregrineFalcon:
 
 
     def dem_to_slopes(self):
-        pass
+        print "Entering SlopeOrientation"
 
+        self.slope = self.output_path + os.sep + "slope.tif"
+        #ALGORITHM: Aspect
+            # INPUT <ParameterRaster>
+            # BAND <ParameterNumber>
+            # COMPUTE_EDGES <ParameterBoolean>
+            # ZEVENBERGEN <ParameterBoolean>
+            # TRIG_ANGLE <ParameterBoolean>
+            # ZERO_FLAT <ParameterBoolean>
+            # OUTPUT <OutputRaster>
+        processing.runalg("gdalogr:slope", self.input_dem, 1, False, False, False, 1, self.slope)
+        self.get_slopes_data()
+
+
+
+
+    def get_slopes_data(self):
+        self.input_slopes = gdal.Open(self.slope)
+        self.communications.write_qgis_logs("info", u"Ouverture du raster %s" % self.slope)
+        slopes_band1 = self.input_slopes.GetRasterBand(1)
+
+        self.slopes_data = slopes_band1.ReadAsArray(0,0, self.cols, self.rows)
+        del self.input_slopes
 
 
 
 
 
     def dem_to_aspect(self):
-        pass
+        print "Entering SlopeOrientation"
+
+        self.aspect = self.output_path + os.sep + "aspect.tif"
+        #ALGORITHM: Aspect
+            # INPUT <ParameterRaster>
+            # BAND <ParameterNumber>
+            # COMPUTE_EDGES <ParameterBoolean>
+            # ZEVENBERGEN <ParameterBoolean>
+            # TRIG_ANGLE <ParameterBoolean>
+            # ZERO_FLAT <ParameterBoolean>
+            # OUTPUT <OutputRaster>
+        processing.runalg("gdalogr:aspect", self.input_dem, 1, False, False, False, False, self.aspect)
+        self.get_aspect_data()
 
 
+
+    def get_aspect_data(self):
+        self.input_aspect = gdal.Open(self.aspect)
+        self.communications.write_qgis_logs("info", u"Ouverture du raster %s" % self.aspect)
+        aspect_band1 = self.input_aspect.GetRasterBand(1)
+
+        self.aspect_data = aspect_band1.ReadAsArray(0,0, self.cols, self.rows)
+
+
+
+
+    def aspect_reclass(self):
+
+        self.communications.show_message("info", u"Reclassification de la matrice 'Aspect'")
+
+        self.aspect_data[numpy.where((self.aspect_data >= 0) & (self.aspect_data < 45)) ] = 1
+        self.aspect_data[numpy.where((self.aspect_data >= 315) & (self.aspect_data <= 360))] = 1
+
+        self.aspect_data[numpy.where((self.aspect_data >= 45) & (self.aspect_data < 90))] = 2
+        self.aspect_data[numpy.where((self.aspect_data >= 270) & (self.aspect_data < 315))] = 2
+
+        self.aspect_data[numpy.where((self.aspect_data >= 90) & (self.aspect_data < 135))] = 3
+        self.aspect_data[numpy.where((self.aspect_data >= 225) & (self.aspect_data < 270))] = 3
+
+        self.aspect_data[numpy.where((self.aspect_data >= 135) & (self.aspect_data < 225))] = 4
+
+        self.aspect_data[numpy.where((self.aspect_data == -9999))] = 1
+        self.aspect_data[numpy.isnan(self.aspect_data)] = 1
+
+        # Écriture de l'image en output pour la fonction
+        self.write_gtiff("aspect_reclass.tif", self.aspect_data)
 
 
     ####################################################################################################
@@ -161,10 +222,10 @@ class peregrineFalcon:
     ####################################################################################################
 
     def identify_cliffs(self):
-        self.falaises_data = self.input_data
+        self.falaises_data = self.slopes_data
 
         # Enlever tout les pixels dont la valeur est inférieur à celle spécifié dans les paramètres
-        print "Élimination des pixels inférieur à %s" % str(self.slope_deg)
+        self.communications.show_message("info", u"Élimination des pixels inférieur à %s" % str(self.slope_deg))
         self.falaises_data[self.falaises_data < float(self.slope_deg)] = 0
         self.falaises_data[numpy.isnan(self.falaises_data)] = 0
 
@@ -190,12 +251,10 @@ class peregrineFalcon:
                   [1,1,1]]
 
         # Identification des pixels contigus (un genre d'algorithme de "fill" comme dans Gimp)
-        print "Identification des pixels contigus"
+        self.communications.show_message("info", u"Identification des pixels contigus à partir des falaises identifiées")
         self.labeled_cliffs, self.num_cliffs = scipy.ndimage.measurements.label(self.falaises_data, structure=struct)
 
 
-        # Matrice temporaire pour stocker les valeurs de chaque pixel de chaque "label"
-        tmp_avg_slope = [ [""] for i in range(self.num_cliffs)]
 
         # Matrice pour stocker le nombre de pixels par "label"
         self.nb_pixel_cliff = [ 0 for i in range(self.num_cliffs) ]
@@ -204,14 +263,9 @@ class peregrineFalcon:
         # Calculer la moyenne d'inclinaison de chaque cliffs
         hist1, bin_edges1 = numpy.histogram(self.labeled_cliffs, bins=self.num_cliffs)
 
-        #print bin_edges1
-        #print hist1
-
         hist2, bin_edges2 = numpy.histogram(self.labeled_cliffs, weights=self.falaises_data, bins=self.num_cliffs)
 
-        #print bin_edges2
-        #print hist2
-        #print len(hist1), len(hist2)
+
         avg_slope = []
         for i, j in enumerate(hist2):
             avg_slope.append(j / hist1[i])
@@ -220,7 +274,7 @@ class peregrineFalcon:
 
 
         # Reclassification de la matrice de falaise
-        print "Reclassification de la matrice de falaise"
+        self.communications.show_message("info", u"Reclassification de la matrice de falaise")
         self.falaises_data_rc = self.falaises_data
 
 
@@ -240,28 +294,6 @@ class peregrineFalcon:
 
 
 
-        self.drop_below_avg()
-
-
-
-
-
-    ######################################################################################################################################
-    ### Éliminer toutes les falaises dont la moyenne calculée est inférieur à la valeur spécifié par l'utilisateur dans les paramètres ###
-    ######################################################################################################################################
-
-    ######################### INUTILE #########################
-    def drop_below_avg(self):
-
-
-        # Enlever tout les pixels dont la valeur est inférieur à celle spécifié dans les paramètres
-        print "Élimination des falaises avec une moyenne calculée de moins que %s" % str(self.slope_deg)
-        self.falaises_data_rc[self.falaises_data < float(self.slope_deg)] = 0
-        self.falaises_data_rc[numpy.isnan(self.falaises_data)] = 0
-
-
-        self.write_gtiff("drop_below_avg.tif", self.falaises_data)
-    ######################### INUTILE #########################
 
 
 
@@ -270,7 +302,7 @@ class peregrineFalcon:
 
     def rasterize_water(self):
 
-        print "Convertir le shapefile d'étendu d'eau en raster\n"
+        self.communications.show_message("info", u"Convertir le shapefile d'étendu d'eau en raster\n")
         self.input_water_shp = ogr.Open(self.input_water)
         self.input_water_shp_lyr = self.input_water_shp.GetLayer()
 
@@ -284,6 +316,7 @@ class peregrineFalcon:
 
 
         # Écriture du raster à partir du shapefile
+        self.communications.show_message("info", u"Écriture du fichier 'water_rasterized.tif'")
         gdal.RasterizeLayer(self.water_rast_img, [1], self.input_water_shp_lyr, burn_values=[1])
 
         self.water_rast_img.SetGeoTransform((self.input_geot[0], self.input_geot[1], self.input_geot[2], self.input_geot[3], self.input_geot[4], self.input_geot[5]))
@@ -301,7 +334,7 @@ class peregrineFalcon:
 
     def rasterize_wetland(self):
 
-        print "Convertir le shapefile de milieu humide en raster\n"
+        self.communications.show_message("info", u"Convertir le shapefile de milieu humide en raster...\n")
         self.input_wetland_shp = ogr.Open(self.input_wetland)
         self.input_wetland_shp_lyr = self.input_wetland_shp.GetLayer()
 
@@ -316,6 +349,7 @@ class peregrineFalcon:
 
 
         # Écriture du raster à partir du shapefile
+        self.communications.show_message("info", u"Écriture du fichier 'wetland_rasterized.tif'")
         gdal.RasterizeLayer(self.wetland_rast_img, [1], self.input_wetland_shp_lyr, burn_values=[1])
 
         self.water_rast_img.SetGeoTransform((self.input_geot[0], self.input_geot[1], self.input_geot[2], self.input_geot[3], self.input_geot[4], self.input_geot[5]))
@@ -346,7 +380,8 @@ class peregrineFalcon:
 
         self.nb_pixel_slope = [ 0 for i in range(self.num_slope) ]
 
-        print "Élimination des falaises dont la superficie est moins de %s pixels" % str(self.slope_area)
+        self.communications.show_message("info", u"Élimination des falaises dont la superficie est inférieure à %s pixels" % str(self.slope_area))
+
         # Remplir la matrice temporaire
         for i, value1 in enumerate(self.labeled_slope):
             for j, value2 in enumerate(value1):
@@ -354,7 +389,7 @@ class peregrineFalcon:
                     # Ajouter un pixel a la liste du nombre de pixel par "label"
                     self.nb_pixel_slope[value2-1] = self.nb_pixel_slope[value2-1] + 1
 
-        #print self.nb_pixel_slope
+
 
 
         self.falaises_area = self.falaises_data_rc
@@ -388,7 +423,7 @@ class peregrineFalcon:
 
         self.nb_pixel_water = [ 0 for i in range(self.num_water) ]
 
-        print "Élimination des étendues d'eau dont la superficie est moins de %s pixels" % str(self.water_area)
+        self.communications.show_message("info", u"Élimination des étendues d'eau dont la superficie est inférieure à %s pixels" % str(self.water_area))
         # Remplir la matrice temporaire
         for i, value1 in enumerate(self.labeled_water):
             for j, value2 in enumerate(value1):
@@ -407,11 +442,6 @@ class peregrineFalcon:
                     if self.nb_pixel_water[value2-1] >= int(self.water_area): pass
                     else:
                         self.water_data_rc[i][j] = 0
-
-
-        # # Threshold pour la superficie des étendues d'eau
-        # self.water_data_rc[self.water_data_rc < float(self.water_area)] = 0
-        # self.water_data_rc[numpy.isnan(self.water_data_rc)] = 0
 
 
         self.write_gtiff("calculate_water_area.tif", self.water_data_rc)
@@ -434,7 +464,7 @@ class peregrineFalcon:
 
         self.nb_pixel_wetland = [ 0 for i in range(self.num_wetland) ]
 
-        print "Élimination des milieux humides dont la superficie est moins de %s pixels" % str(self.wetland_area)
+        self.communications.show_message("info", u"Élimination des milieux humides dont la superficie est inférieure à %s pixels" % str(self.wetland_area))
         # Remplir la matrice temporaire
         for i, value1 in enumerate(self.labeled_wetland):
             for j, value2 in enumerate(value1):
@@ -454,9 +484,7 @@ class peregrineFalcon:
                         self.water_data_rc[i][j] = 0
 
 
-        # # Threshold pour la superficie des milieux humides
-        # self.wetland_data_rc[self.wetland_data_rc < float(self.wetland_area)] = 0
-        # self.wetland_data_rc[numpy.isnan(self.wetland_data_rc)] = 0
+
 
         self.write_gtiff("calculate_wetland_area.tif", self.wetland_data_rc)
 
@@ -467,7 +495,7 @@ class peregrineFalcon:
 
 
     def write_gtiff(self, filename, array):
-        print "Écriture du fichier '%s'\n" % str(filename)
+        self.communications.show_message("info", u"Écriture du fichier '%s'\n" % str(filename))
         temp_write_path = self.output_path + os.sep + filename
         write_gtiff_img = self.writeDriver.Create(temp_write_path, self.cols, self.rows, 1, GDT_Int32)
         write_gtiff_img_band1 = write_gtiff_img.GetRasterBand(1)
@@ -487,10 +515,10 @@ class peregrineFalcon:
 
         # Valider si c'est wetland ou water et règle le chemin de sortie pour le raster qui sera créé.
         if (input_type == "wetland"):
-            print "Création du raster de proximité wetland"
+            self.communications.show_message("info", u"Création du raster de proximité wetland")
             temp_write_path = self.output_path + os.sep + 'create_prox_raster_wl.tif'
         if (input_type == "water"):
-            print "Création du raster de proximité water"
+            self.communications.show_message("info", u"Création du raster de proximité water")
             temp_write_path = self.output_path + os.sep + 'create_prox_raster_w.tif'
 
 
@@ -503,8 +531,10 @@ class peregrineFalcon:
         self.water_rast_img_band1 = self.water_rast_img.GetRasterBand(1)
         if (input_type == "wetland"):
             gdal.ComputeProximity(self.wetland_rast_img_band1, proximity_img_band1, [])
+            self.wetland_prox_data = proximity_img_band1.ReadAsArray(0,0, self.cols, self.rows)
         if (input_type == "water"):
             gdal.ComputeProximity(self.water_rast_img_band1, proximity_img_band1, [])
+            self.waterland_prox_data = proximity_img_band1.ReadAsArray(0,0, self.cols, self.rows)
 
 
 
@@ -512,84 +542,79 @@ class peregrineFalcon:
 
 
 
+    def results_calculation(self):
+        self.results_raster = self.aspect_data * self.falaises_data * self.wetland_prox_data * self.waterland_prox_data / 10000
+        self.write_gtiff("raster_output.tif", self.results_raster)
+
+
+
+
+
+    def non_max_sup(self):
+
+        self.communications.show_message("info", "Générer le shapefile de points à partir des falaises")
+        source = gdal.Open(self.output_path + os.sep + "raster_output.tif")
+        grey = numpy.array(source.GetRasterBand(1).ReadAsArray())
+        points = []
+
+        s = [[1, 1, 1],
+             [1, 1, 1],
+             [1, 1, 1]]
+
+        labeled_array, num_features = ndimage.measurements.label(grey, structure=s)
+        slices = ndimage.find_objects(labeled_array)
+        print "Found", num_features, "cliff patches in file"
+
+        for i, slice in enumerate(slices):
+            if not i % 10:
+                print "Treating patch", i
+            patch = grey[slice]
+            if len(patch) > 1:
+                ij = [ij for ij, val in ndenumerate(patch) if val == max(patch.flatten())]
+                ij = ij[0]
+                points.append([ij[0]+slice[0].start+0.5, ij[1]+slice[1].start+0.5])
+            else:
+                points.append([slice[0].start+0.5, slice[1].start+0.5])
+
+        driver = ogr.GetDriverByName("ESRI Shapefile")
+        if os.path.exists(self.output_path + os.sep + "cliffs.shp"):
+            driver.DeleteDataSource(self.output_path + os.sep + "cliffs.shp")
+        shapeData = driver.CreateDataSource(self.output_path + os.sep + "cliffs.shp")
+
+        out_layer = shapeData.CreateLayer("cliffs", geom_type=ogr.wkbPoint)
+
+        # Write projection file
+        spatial_ref = source.GetProjection()
+        file_handle = open(self.output_path + os.sep + "cliffs.prj", 'w')
+        file_handle.write(spatial_ref)
+        file_handle.close()
+
+        affine = source.GetGeoTransform()
+
+        # Write each point
+        for point in points:
+            point = point[::-1]
+            x = affine[0] + affine[1]*point[0] + affine[2]*point[1]
+            y = affine[3] + affine[4]*point[0] + affine[5]*point[1]
+
+            out_feat = ogr.Feature(out_layer.GetLayerDefn())
+
+            geometry = ogr.Geometry(ogr.wkbPoint)
+            geometry.SetPoint(0, x, y)
+
+            out_feat.SetGeometry(geometry)
+            out_layer.CreateFeature(out_feat)
+            # Flush changes to disk
+            out_layer.SyncToDisk()
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def manage_threshold_values(self):
-        pass
-        #
-        # # Threshold pour l'inclinaison moyenne du cliff
-        # print "Élimination des falaises avec une moyenne calculée de moins que %s" % str(self.slope_deg)
-        # self.falaises_data_rc[self.falaises_data_rc < float(self.slope_deg)] = 0
-        # self.falaises_data_rc[numpy.isnan(self.falaises_data_rc)] = 0
-        #
-        # # Threshold pour la superficie de la falaise
-        # self.falaises_data_rc[self.falaises_data_rc < float(self.slope_area)] = 0
-        # self.falaises_data_rc[numpy.isnan(self.falaises_data_rc)] = 0
-        #
-        # # Threshold pour la superficie des étendues d'eau
-        # self.water_data_rc[self.water_data_rc < float(self.water_area)] = 0
-        # self.water_data_rc[numpy.isnan(self.water_data_rc)] = 0
-        #
-        # # Threshold pour la superficie des milieux humides
-        # self.wetland_data_rc[self.wetland_data_rc < float(self.wetland_area)] = 0
-        # self.wetland_data_rc[numpy.isnan(self.wetland_data_rc)] = 0
-        #
-
-        #
-        # for i, value in enumerate(self.input_data):
-        #     for j, value2 in enumerate(value):
-        #
-        #         # Threshold pour l'inclinaison moyenne du cliff
-        #         if (self.falaises_data_rc[i][j] >= float(self.slope_deg)): pass
-        #         else: self.falaises_data_rc[i][j] = 0
-        #
-        #         # Threshold pour la superficie de la falaise
-        #         if (self.nb_pixel_cliff[self.labeled_cliffs[i][j]-1] >= int(self.slope_area)): pass
-        #         else:
-        #             self.falaises_data_rc[i][j] = 0
-        #
-        #         # Threshold pour la superficie des étendues d'eau
-        #         if (self.nb_pixel_water[self.labeled_water[i][j]-1] >= int(self.water_area)): pass
-        #         else:
-        #             self.water_data_rc[i][j] = 0
-        #
-        #
-        #         # Threshold pour la superficie des milieux humides
-        #         if (self.nb_pixel_wetland[self.labeled_wetland[i][j]-1] >= int(self.wetland_area)): pass
-        #         else:
-        #             self.wetland_data_rc[i][j] = 0
-
-
-
-
-
-
-
-
+    def add_results_to_qgis(self):
+        self.iface.addRasterLayer(self.output_path + os.sep + "raster_output.tif", "raster_output")
+        self.iface.addVectorLayer(self.output_path + os.sep + "cliffs.shp", "cliffs_points", "ogr")
 
 
 # Comment faire le in memory ??
@@ -599,259 +624,3 @@ class peregrineFalcon:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ###################################################################################
-# #####                        Détermination des falaises                       #####
-# ###################################################################################
-#
-#
-# # Ouverture du fichier de slopes en input
-# input_slope = r'larouche_slopeq'
-# input_ds = gdal.Open(input_slope)
-#
-# # Obtenir la projection de l'image
-# input_prj = input_ds.GetProjection()
-#
-# # Informations sur la position de l'image input et de la taille des pixels
-# input_ds_geo = input_ds.GetGeoTransform()
-#
-# # Nombre de colonnes et de rows de l'image en input
-# cols = input_ds.RasterXSize
-# rows = input_ds.RasterYSize
-# print cols, rows
-#
-# # Gris
-# band = input_ds.GetRasterBand(1)
-#
-# # Obtenir un array numpy à partir de la bande de gris
-# input_data = band.ReadAsArray(0,0, cols, rows)
-#
-# # Création du fichier output
-# driverOut = gdal.GetDriverByName("GTiff")
-# image = driverOut.Create(r'image_out.tif', cols, rows, 1, GDT_Int32)
-#
-# # Définition des informations sur la position de l'image output et de la taille des pixels (information obtenue avec l'image input)
-# image.SetGeoTransform((input_ds_geo[0], input_ds_geo[1], input_ds_geo[2], input_ds_geo[3], input_ds_geo[4], input_ds_geo[5]))
-#
-#
-# falaises_data = input_data
-#
-# # Tout ce qui vaut plus de 40 prend la valeur 1
-# for i, f in enumerate(input_data):
-#     for j, g in enumerate(f):
-#         if (g >= 30):
-#             falaises_data[i][j] = 1
-#         else:
-#             falaises_data[i][j] = 0
-#
-#
-# """
-# # Écriture de l'image
-# band = image.GetRasterBand(1)
-# band.WriteArray(falaises_data, 0, 0)
-#
-# # Définition de la projection de l'image output (même projection que input)
-# image.SetProjection(input_prj)
-# """
-#
-# # Détermination de la grandeur de chaque falaise (par le nombre de pixel)
-#
-# struct = [[1,1,1],
-#         [1,1,1],
-#         [1,1,1]]
-#
-#
-# labeled_array, num_features = scipy.ndimage.measurements.label(falaises_data, structure=struct)
-#
-# numb = [0 for i in range(num_features)]
-#
-# for i in labeled_array:
-#     for j in i:
-#         if (j != 0):
-#             numb[j-1] = numb[j-1] + 1
-#
-#
-# for i, label in enumerate(labeled_array):
-#     for j, label2 in enumerate(label):
-#         if (labeled_array[i][j] != 0):
-#             if (numb[labeled_array[i][j]-1] > 4):
-#                 labeled_array[i][j] = numb[label2-1]
-#             else:
-#                 labeled_array[i][j] = 0
-#
-#
-# # Création du fichier output
-# driverOut = gdal.GetDriverByName("GTiff")
-# image = driverOut.Create(r'image_out_c.tif', cols, rows, 1, GDT_Int32)
-#
-# # Définition des informations sur la position de l'image output et de la taille des pixels (information obtenue avec l'image input)
-# image.SetGeoTransform((input_ds_geo[0], input_ds_geo[1], input_ds_geo[2], input_ds_geo[3], input_ds_geo[4], input_ds_geo[5]))
-#
-# # Écriture de l'image
-# band = image.GetRasterBand(1)
-# band.WriteArray(labeled_array, 0, 0)
-#
-#
-#
-#
-#
-#
-#
-#
-# ###################################################################################
-# #####            Transformer un shapefile d'étendu d'eau en raster            #####
-# ###################################################################################
-#
-#
-#
-# # Transformer un shapefile d'étendu d'eau en raster
-#
-# NoData_value = 0
-#
-# input_vector = ogr.Open(r'waterbody_2.shp')
-# input_vector_layer = input_vector.GetLayer()
-# x_min, x_max, y_min, y_max = input_vector_layer.GetExtent()
-#
-# x_res = int((x_max - x_min) / input_ds_geo[1])
-# y_res = int((y_max - y_min) / input_ds_geo[5])
-#
-# v_driverOut = gdal.GetDriverByName("GTiff")
-# v_image = v_driverOut.Create(r'rasterized.tif', cols, rows, 1, GDT_Int32)
-#
-# v_image.SetGeoTransform((input_ds_geo[0], input_ds_geo[1], input_ds_geo[2], input_ds_geo[3], input_ds_geo[4], input_ds_geo[5]))
-# v_band = v_image.GetRasterBand(1)
-# v_band.SetNoDataValue(NoData_value)
-#
-# # Écriture du raster à partir du shapefile
-# gdal.RasterizeLayer(v_image, [1], input_vector_layer, burn_values=[100])
-#
-# # Array numpy de l'image rasterizé
-# v_data = v_band.ReadAsArray(0,0, cols, rows)
-#
-# labeled_lakes, num_lakes = scipy.ndimage.measurements.label(v_data, structure=struct)
-#
-# numb2 = [0 for i in range(num_lakes)]
-#
-# for i in labeled_lakes:
-#     for j in i:
-#         if (j != 0):
-#             numb2[j-1] = numb2[j-1] + 1
-#
-# print numb2
-#
-# # Pour garder les étendues d'eau de grandeur significatives
-# labeled_lakes2 = labeled_lakes
-# for i, label in enumerate(labeled_lakes):
-#     for j, label2 in enumerate(label):
-#         if label2 != 0:
-#             if (numb2[label2-1] > 10):
-#                 #print numb2[label2-1]
-#                 labeled_lakes2[i][j] = 2
-#             else:
-#                 labeled_lakes2[i][j] = 0
-#
-#
-# # Création du fichier output
-# driverOut = gdal.GetDriverByName("GTiff")
-# image = driverOut.Create(r'labeled_lakes2.tif', cols, rows, 1, GDT_Int32)
-#
-# # Définition des informations sur la position de l'image output et de la taille des pixels (information obtenue avec l'image input)
-# image.SetGeoTransform((input_ds_geo[0], input_ds_geo[1], input_ds_geo[2], input_ds_geo[3], input_ds_geo[4], input_ds_geo[5]))
-#
-#
-# # Écriture de l'image
-# band = image.GetRasterBand(1)
-# band.WriteArray(labeled_lakes2, 0, 0)
-#
-#
-#
-# prox_image = gdal.Open(r'proximity.tif')
-# prox_band = prox_image.GetRasterBand(1)
-# prox_data = prox_band.ReadAsArray(0,0, cols, rows)
-#
-# #print prox_data
-#
-#
-# cliff_prox = labeled_array
-#
-# for i, label in enumerate(labeled_array):
-#     for j, label2 in enumerate(label):
-#         if (label2 != 0):
-#             print label2
-#             cliff_prox[i][j] = label2 * (prox_data.max() - prox_data[i][j])
-#             #print cliff_prox[i][j]
-#
-#
-# cliff_prox_img = driverOut.Create(r'cliff_prox.tif', cols, rows, 1, GDT_Float32)
-# prox_band = cliff_prox_img.GetRasterBand(1)
-# prox_band.WriteArray(cliff_prox, 0, 0)
-# cliff_prox_img.SetGeoTransform((input_ds_geo[0], input_ds_geo[1], input_ds_geo[2], input_ds_geo[3], input_ds_geo[4], input_ds_geo[5]))
-#
-#
-# """
-# # Création d'un raster qui illustre la proximité de chaque plan d'eau.
-#
-#     #gdal.ComputeProximity( srcband, dstband, options, callback = prog_func )
-#
-# creation_options = []
-# creation_type = 'Float32'
-#
-# dst_filename = 'proximity.tif'
-#
-# drv = gdal.GetDriverByName("GTiff")
-# dst_ds = drv.Create( dst_filename, cols, rows, 1, GDT_Float32)
-#
-# dst_ds.SetGeoTransform(input_ds_geo)
-# dst_ds.SetProjection(input_prj)
-#
-# dstband = dst_ds.GetRasterBand(1)
-#
-#
-#
-# gdal.ComputeProximity(v_band, dstband, [])
-# """
-
-
-
-
-
-
-
-
-
-
-
-# Calculer la moyenne de valeur des pixels dans la tache
-# Calculer le centroid
-
-# Vérifier la teinte de gris sous le centroid (qui est la distance à un point d'eau)
-# Reclassifier les pixels selon les résultats obtenus
-# Interpoler entre les centroids

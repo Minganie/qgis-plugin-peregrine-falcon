@@ -13,19 +13,18 @@ class validation:
     input_water_srs = ""
     input_wetland_srs = ""
 
-    def __init__(self, iface, communications):
+    def __init__(self, iface, communications, plugin_name):
 
         self.iface = iface
         # Initialisation du driver OGR
         self.ogr_driver = ogr.GetDriverByName('ESRI Shapefile')
         self.communications = communications
+        self.plugin_name = plugin_name
 
 
 
 
-
-    # Retourne False si il y a un problème avec le fichier en entrée, avec le nom du fichier et le message d'erreur
-    # Sous la form [Bool, "filename", "message"]
+    # Validation des fichiers en entrée
     def validate_input(self, inputs):
 
         for i, input in enumerate(inputs):
@@ -35,29 +34,37 @@ class validation:
                 # Vérifier si le fichier existe.
                 if not (os.path.exists(str(input))):
 
-                    return [False, input, "[ERREUR] Le fichier '%s' n'existe pas!" % input]
+                    self.communications.show_message("critical", u"Le fichier '%s' n'existe pas!" % input)
+                    return False
 
                 # Vérifier la validité du raster en entrée
                 if (i == 0):
                     if not (self.validate_raster(input)):
-                        return [False, input, "[ERREUR] Le fichier '%s' n'est pas un raster GTiff valide!" % input]
+                        self.communications.show_message("critical", u"Le fichier '%s' n'est pas un raster GTiff valide!" % input)
+                        return False
 
                 # Vérifier la validité des shapefiles (polygones)
                 if (i >= 1):
                     if (self.validate_polygons(input) == False):
-                        return [False, input, "[ERREUR] Le fichier '%s' n'est pas un fichier de polygones!" % input]
+                        self.communications.show_message("critical", u"Le fichier '%s' n'est pas un polygone valide!" % input)
+                        return False
 
-        return [True, "", ""]
+        self.communications.write_qgis_logs("info", u"Fichiers en entrée: " + inputs[0] + "\n" + inputs[1] + "\n" + inputs[2])
+        # Retourne vrai si les tests ont réussis!
+        return True
 
 
 
-
+    # Valider le raster en entrée
     def validate_raster(self, input):
 
         try:
+            # Ouverture du raster
             input_ds = gdal.Open(input)
-            rasterband = input_ds.GetRasterBand(5)
+            # Obtenir la bande 1 du raster
+            rasterband = input_ds.GetRasterBand(1)
         except:
+            self.communications.show_message("critical", u"Impossible de lire la bande 1 du raster en entrée")
             return False
 
         del input_ds, rasterband
@@ -66,37 +73,48 @@ class validation:
 
 
 
-
+    # Validation des polygones en entrée
     def validate_polygons(self, input):
         try:
+            # Ouverture du fichier
             input_ds = self.ogr_driver.Open(input)
+            # Obtenir le layer du fichier
             input_lyr = input_ds.GetLayer()
         except:
+            self.communications.show_message("critical", u"Impossible d'ouvrir le fichier %s!" % input)
             return False
 
+        # Vérifier les feature (est-ce un polygone?)
         for feature in input_lyr:
             validate_feature = feature.GetGeometryRef()
 
             if (validate_feature.GetGeometryType() != 3):
+                self.communications.show_message("critical", u"Le fichier %s ne contient pas de polygones!" % input)
                 return False
 
         del validate_feature, input_ds, input_lyr
+        # Retourne vrai si les tests ont réussis!
         return True
 
 
 
-
+    # Valider le chemin de sortie
     def validate_output(self, output):
 
+        # Est-ce que le champ est vide ou le dossier existe?
         if (output.strip() != "") and (output != None):
             if not (os.path.exists(output)):
-                self.communications.show_message("error", u"Le chemin %s n'existe pas!" % output)
-                return [False, output, "[ERREUR] Le chemin %s n'existe pas!" % output]
+                self.communications.show_message("critical", u"Le chemin %s n'existe pas!" % output)
+                return False
 
+            # Si non, est-ce qu'on peut écrire dans le dossier?
             if not (os.access(output, os.W_OK)):
-                return [False, output, "[ERREUR] Impossible d'écrire dans le chemin de sortie!"]
+                self.communications.show_message("critical", u"Impossible d'écrire dans le chemin de sortie!")
+                return False
 
-        return [True, "", ""]
+        self.communications.write_qgis_logs("info", u"Chemin en sortie: %s" % output)
+        # Retourne vrai si les tests ont réussis!
+        return True
 
 
 
@@ -140,25 +158,24 @@ class validation:
                 return_value = [srs.GetAttrValue('GEOGCS'), srs.GetAttrValue('AUTHORITY', 1), srs.GetAttrValue('UNIT'), wktprj]
 
             del input_ds
+            self.communications.write_qgis_logs("info", "Srs du fichier" + str(input) + ": " + str(srs))
             return return_value
 
 
 
 
-
+    # Vérifier si les fichiers en entrée ont le même SRS
     def validate_input_spatial_ref_sys(self, inputs):
-
-
+        # Obtenir les SRS
         srs1 = osr.SpatialReference(inputs[0])
         srs2 = osr.SpatialReference(inputs[1])
         srs3 = osr.SpatialReference(inputs[2])
-        print srs1.IsSame(srs2)
-        print srs1.IsSame(srs3)
-        print srs2.IsSame(srs3)
 
         if (srs1.IsSame(srs2) == srs1.IsSame(srs3) == srs2.IsSame(srs3)):
+            # Retourne vrai si les tests ont réussis!
             return True
         else:
+            self.communications.show_message("critical", u"Les fichiers en entrée n'ont pas tous le même système de référence spatial.")
             return False
 
 
@@ -166,7 +183,7 @@ class validation:
 
 
 
-
+    # Obtenir les SRS des fichiers en entrée
     def set_input_spatial_ref_sys(self, input):
         self.input_ds = gdal.Open(input)
         if self.input_dem_srs is None:

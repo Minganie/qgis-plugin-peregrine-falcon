@@ -12,8 +12,9 @@ import os
 class NonMaxSupp:
 
     def __init__(self, cliff_patches):
+
         print "Entering NonMaxSupp"
-        source = gdal.Open(cliff_patches)
+        source = gdal.Open(self.cliff_patches)  #c'est qoi input?
         grey = np.array(source.GetRasterBand(1).ReadAsArray())
         points = []
 

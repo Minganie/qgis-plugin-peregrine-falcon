@@ -2,21 +2,20 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a976b756-e251-4bc2-aed8-ba3048e3ba31" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/communications.py" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/out_data/drop_below_avg.tif" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/out_data/identify_cliffs.tif.aux.xml" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/icon.png" afterPath="$PROJECT_DIR$/icon.png" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out_data/calculate_slope_area.tif" afterPath="$PROJECT_DIR$/out_data/calculate_slope_area.tif" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out_data/calculate_water_area.tif" afterPath="$PROJECT_DIR$/out_data/calculate_water_area.tif" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out_data/calculate_wetland_area.tif" afterPath="$PROJECT_DIR$/out_data/calculate_wetland_area.tif" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out_data/create_prox_raster_w.tif" afterPath="$PROJECT_DIR$/out_data/create_prox_raster_w.tif" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out_data/create_prox_raster_wl.tif" afterPath="$PROJECT_DIR$/out_data/create_prox_raster_wl.tif" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out_data/drop_below_avg.tif" afterPath="$PROJECT_DIR$/out_data/drop_below_avg.tif" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out_data/identify_cliffs.tif" afterPath="$PROJECT_DIR$/out_data/identify_cliffs.tif" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out_data/identify_cliffs_rc.tif" afterPath="$PROJECT_DIR$/out_data/identify_cliffs_rc.tif" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out_data/water_rasterized.tif" afterPath="$PROJECT_DIR$/out_data/water_rasterized.tif" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out_data/wetland_rasterized.tif" afterPath="$PROJECT_DIR$/out_data/wetland_rasterized.tif" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/peregrinefalcon_dialog_base.ui" afterPath="$PROJECT_DIR$/peregrinefalcon_dialog_base.ui" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/communications.py" afterPath="$PROJECT_DIR$/communications.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/faucon.py" afterPath="$PROJECT_DIR$/faucon.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/faucon_validation.py" afterPath="$PROJECT_DIR$/faucon_validation.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/non_max_supp.py" afterPath="$PROJECT_DIR$/non_max_supp.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/peregrinefalcon.py" afterPath="$PROJECT_DIR$/peregrinefalcon.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/slope_orientation.py" afterPath="$PROJECT_DIR$/slope_orientation.py" />
     </list>
     <ignored path="PeregrineFalcon.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -48,8 +47,8 @@
       <file leaf-file-name="peregrinefalcon.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/peregrinefalcon.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="41" column="23" selection-start-line="41" selection-start-column="23" selection-end-line="41" selection-end-column="23" />
+            <state vertical-scroll-proportion="77.60714">
+              <caret line="361" column="32" selection-start-line="361" selection-start-column="32" selection-end-line="361" selection-end-column="32" />
               <folding>
                 <element signature="e#1258#1337#0" expanded="true" />
               </folding>
@@ -57,11 +56,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="faucon.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="faucon.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/faucon.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="73" column="95" selection-start-line="73" selection-start-column="95" selection-end-line="73" selection-end-column="95" />
+            <state vertical-scroll-proportion="0.19319563">
+              <caret line="558" column="0" selection-start-line="558" selection-start-column="0" selection-end-line="558" selection-end-column="0" />
               <folding>
                 <element signature="e#142#158#0" expanded="true" />
               </folding>
@@ -73,7 +72,7 @@
         <entry file="file://$PROJECT_DIR$/faucon_validation.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="86" column="0" selection-start-line="86" selection-start-column="0" selection-end-line="86" selection-end-column="0" />
+              <caret line="16" column="0" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
               <folding>
                 <element signature="e#25#46#0" expanded="true" />
               </folding>
@@ -81,12 +80,38 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="communications.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="communications.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/communications.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.11440678">
-              <caret line="6" column="73" selection-start-line="6" selection-start-column="73" selection-end-line="6" selection-end-column="73" />
-              <folding />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="97" column="39" selection-start-line="97" selection-start-column="39" selection-end-line="97" selection-end-column="39" />
+              <folding>
+                <element signature="e#25#36#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="non_max_supp.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/non_max_supp.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="23" selection-start-line="0" selection-start-column="23" selection-end-line="0" selection-end-column="23" />
+              <folding>
+                <element signature="e#25#38#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="slope_orientation.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/slope_orientation.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="3" column="10" selection-start-line="3" selection-start-column="10" selection-end-line="3" selection-end-column="10" />
+              <folding>
+                <element signature="e#25#38#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -101,6 +126,7 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="UPDATE_TYPE" value="MERGE" />
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="IdeDocumentHistory">
@@ -108,10 +134,12 @@
       <list>
         <option value="/media/autofs/Stuff/Géomatique/Géo-informatique/Exercices/gmq580test_pp/gmq580test.py" />
         <option value="$PROJECT_DIR$/progress_dialog.py" />
-        <option value="$PROJECT_DIR$/faucon.py" />
-        <option value="$PROJECT_DIR$/faucon_validation.py" />
-        <option value="$PROJECT_DIR$/peregrinefalcon.py" />
         <option value="$PROJECT_DIR$/communications.py" />
+        <option value="$PROJECT_DIR$/faucon_validation.py" />
+        <option value="$PROJECT_DIR$/slope_orientation.py" />
+        <option value="$PROJECT_DIR$/peregrinefalcon.py" />
+        <option value="$PROJECT_DIR$/faucon.py" />
+        <option value="$PROJECT_DIR$/non_max_supp.py" />
       </list>
     </option>
   </component>
@@ -150,7 +178,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -171,6 +198,7 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scratches" />
       <pane id="Scope" />
     </panes>
   </component>
@@ -418,7 +446,13 @@
       <option name="project" value="LOCAL" />
       <updated>1461180263600</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Ajout de la classe 'communications'">
+      <created>1461261248713</created>
+      <option name="number" value="00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1461261248713</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -429,17 +463,17 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32960597" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25772098" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16666667" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16986156" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32955715" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.12280702" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.16718267" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -459,7 +493,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Amélioration de la validation" />
-    <option name="LAST_COMMIT_MESSAGE" value="Amélioration de la validation" />
+    <MESSAGE value="Ajout de la classe 'communications'" />
+    <option name="LAST_COMMIT_MESSAGE" value="Ajout de la classe 'communications'" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -468,6 +503,86 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/peregrinefalcon.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="355" column="78" selection-start-line="355" selection-start-column="78" selection-end-line="355" selection-end-column="78" />
+          <folding>
+            <element signature="e#1258#1337#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/faucon.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="148" column="0" selection-start-line="148" selection-start-column="0" selection-end-line="159" selection-end-column="92" />
+          <folding>
+            <element signature="e#142#158#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/faucon_validation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="16" column="0" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
+          <folding>
+            <element signature="e#25#46#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/communications.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="97" column="39" selection-start-line="97" selection-start-column="39" selection-end-line="97" selection-end-column="39" />
+          <folding>
+            <element signature="e#25#36#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/non_max_supp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#25#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/slope_orientation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="11" column="0" selection-start-line="11" selection-start-column="0" selection-end-line="21" selection-end-column="90" />
+          <folding>
+            <element signature="e#25#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/peregrinefalcon.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#1258#1337#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/faucon.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="73" column="95" selection-start-line="73" selection-start-column="95" selection-end-line="73" selection-end-column="95" />
+          <folding>
+            <element signature="e#142#158#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/peregrinefalcon.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -502,7 +617,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#25#36#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -678,22 +795,42 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/faucon.py">
+    <entry file="file://$PROJECT_DIR$/communications.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="73" column="95" selection-start-line="73" selection-start-column="95" selection-end-line="73" selection-end-column="95" />
+          <caret line="97" column="39" selection-start-line="97" selection-start-column="39" selection-end-line="97" selection-end-column="39" />
           <folding>
-            <element signature="e#142#158#0" expanded="true" />
+            <element signature="e#25#36#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/peregrinefalcon.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="41" column="23" selection-start-line="41" selection-start-column="23" selection-end-line="41" selection-end-column="23" />
+        <state vertical-scroll-proportion="77.60714">
+          <caret line="361" column="32" selection-start-line="361" selection-start-column="32" selection-end-line="361" selection-end-column="32" />
           <folding>
             <element signature="e#1258#1337#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/slope_orientation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="3" column="10" selection-start-line="3" selection-start-column="10" selection-end-line="3" selection-end-column="10" />
+          <folding>
+            <element signature="e#25#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/non_max_supp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="23" selection-start-line="0" selection-start-column="23" selection-end-line="0" selection-end-column="23" />
+          <folding>
+            <element signature="e#25#38#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -701,18 +838,20 @@
     <entry file="file://$PROJECT_DIR$/faucon_validation.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="86" column="0" selection-start-line="86" selection-start-column="0" selection-end-line="86" selection-end-column="0" />
+          <caret line="16" column="0" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
           <folding>
             <element signature="e#25#46#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/communications.py">
+    <entry file="file://$PROJECT_DIR$/faucon.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.11440678">
-          <caret line="6" column="73" selection-start-line="6" selection-start-column="73" selection-end-line="6" selection-end-column="73" />
-          <folding />
+        <state vertical-scroll-proportion="0.19319563">
+          <caret line="558" column="0" selection-start-line="558" selection-start-column="0" selection-end-line="558" selection-end-column="0" />
+          <folding>
+            <element signature="e#142#158#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
