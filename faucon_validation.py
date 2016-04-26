@@ -32,7 +32,7 @@ class validation:
             if (input != ""):
 
                 # Vérifier si le fichier existe.
-                if not (os.path.exists(str(input))):
+                if not (os.path.exists(input)):
 
                     self.communications.show_message("critical", u"Le fichier '%s' n'existe pas!" % input)
                     return False
@@ -158,9 +158,20 @@ class validation:
                 return_value = [srs.GetAttrValue('GEOGCS'), srs.GetAttrValue('AUTHORITY', 1), srs.GetAttrValue('UNIT'), wktprj]
 
             del input_ds
-            self.communications.write_qgis_logs("info", "Srs du fichier" + str(input) + ": " + str(srs))
+            self.communications.write_qgis_logs("info", "Srs du fichier" + input + ": " + str(srs))
             return return_value
 
+
+
+    # Vérifier si les fichiers en entrée ont un système de coordonnées dont les unités sont en mètres
+    def validate_projection_unit(self, inputs):
+        for input in inputs:
+            if (str(input).lower() != "metre") and (str(input).lower() != "meter") and (str(input).lower() != "metres") and (str(input).lower() != "meters") and (str(input).lower() != "m"):
+                self.communications.show_message("critical", u"Un des fichiers en entrée n'a pas des unités en mètres!")
+                return False
+
+        # Retourne vrai si les tests ont réussis!
+        return True
 
 
 
@@ -172,6 +183,7 @@ class validation:
         srs3 = osr.SpatialReference(inputs[2])
 
         if (srs1.IsSame(srs2) == srs1.IsSame(srs3) == srs2.IsSame(srs3)):
+
             # Retourne vrai si les tests ont réussis!
             return True
         else:

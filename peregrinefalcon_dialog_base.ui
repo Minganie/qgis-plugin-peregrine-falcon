@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>475</width>
-    <height>552</height>
+    <width>478</width>
+    <height>521</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>310</x>
-     <y>510</y>
+     <y>480</y>
      <width>161</width>
      <height>41</height>
     </rect>
@@ -321,7 +321,7 @@
      <x>0</x>
      <y>300</y>
      <width>471</width>
-     <height>201</height>
+     <height>171</height>
     </rect>
    </property>
    <property name="title">
@@ -331,7 +331,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>160</y>
+      <y>130</y>
       <width>451</width>
       <height>31</height>
      </rect>
@@ -444,37 +444,11 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="horizontalLayoutWidget_6">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>110</y>
-      <width>451</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_6">
-     <item>
-      <widget class="QRadioButton" name="projUnitRadioButton">
-       <property name="text">
-        <string>Unités de la projection</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="pixelRadioButton">
-       <property name="text">
-        <string>Pixels</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
    <widget class="Line" name="line">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>140</y>
+      <y>110</y>
       <width>451</width>
       <height>20</height>
      </rect>
@@ -588,7 +562,7 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>510</y>
+     <y>480</y>
      <width>81</width>
      <height>31</height>
     </rect>

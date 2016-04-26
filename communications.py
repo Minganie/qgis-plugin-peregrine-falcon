@@ -77,8 +77,9 @@ class communications:
     def clear_message_bar_delay(self):
         # Attendre 8 secondes avant d'effacer le contenu de la Status Bar et d'enlever la Message Bar
         self.timer = QTimer()
-        self.timer.setInterval(8000)   # 4000 ms = 4 secondes
+        self.timer.setInterval(8000)   # 1000 ms = 1 secondes
         self.timer.setSingleShot(True)
+        # Quand le timer fini, appeller la fonction pour effacer
         self.timer.timeout.connect(self.clear_message_bar)
         self.timer.start()
 
