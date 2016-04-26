@@ -10,13 +10,16 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="189.01178mm"
-   height="132.59265mm"
-   viewBox="0 0 669.72678 469.81648"
+   width="235.45499mm"
+   height="236.02516mm"
+   viewBox="0 0 834.28933 836.30963"
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="falcon.svg">
+   sodipodi:docname="falcon.svg"
+   inkscape:export-filename="C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\icon.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <defs
      id="defs4">
     <linearGradient
@@ -159,8 +162,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.49497475"
-     inkscape:cx="-37.425731"
-     inkscape:cy="128.85692"
+     inkscape:cx="240.561"
+     inkscape:cy="294.78178"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -168,8 +171,8 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:window-width="1920"
-     inkscape:window-height="1017"
+     inkscape:window-width="1536"
+     inkscape:window-height="801"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1" />
@@ -189,7 +192,15 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-31.666541,-86.634149)">
+     transform="translate(50.614731,96.612419)">
+    <rect
+       style="fill:#82d0ff;fill-opacity:1;stroke:none;stroke-width:2.83500004;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect4170"
+       width="834.28931"
+       height="836.30963"
+       x="-50.614731"
+       y="-96.612419"
+       ry="110.31535" />
     <g
        id="g4282"
        transform="matrix(6.1435787,0,0,6.1435787,-1308.2177,-2058.6867)">
