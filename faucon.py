@@ -13,6 +13,8 @@ import scipy.stats
 import os
 from numpy import ndenumerate
 import processing
+from qgis.core import QgsRasterLayer, QgsRaster, QgsRasterDataProvider, QgsVectorLayer, QgsVectorDataProvider, QgsField, QgsPoint
+from PyQt4.QtCore import QVariant
 
 class peregrineFalcon:
 
@@ -122,6 +124,7 @@ class peregrineFalcon:
 
 
 
+
     ##################################################
     ### Obtenir un array numpy du raster en entrée ###
     ##################################################
@@ -139,17 +142,10 @@ class peregrineFalcon:
 
 
     def dem_to_slopes(self):
-        print "Entering SlopeOrientation"
+        self.communications.show_message("info", "Transformation du DEM en Slope")
 
         self.slope = self.output_path + os.sep + "slope.tif"
-        #ALGORITHM: Aspect
-            # INPUT <ParameterRaster>
-            # BAND <ParameterNumber>
-            # COMPUTE_EDGES <ParameterBoolean>
-            # ZEVENBERGEN <ParameterBoolean>
-            # TRIG_ANGLE <ParameterBoolean>
-            # ZERO_FLAT <ParameterBoolean>
-            # OUTPUT <OutputRaster>
+
         processing.runalg("gdalogr:slope", self.input_dem, 1, False, False, False, 1, self.slope)
         self.get_slopes_data()
 
@@ -169,17 +165,10 @@ class peregrineFalcon:
 
 
     def dem_to_aspect(self):
-        print "Entering SlopeOrientation"
+        self.communications.show_message("info", "Calcul de l'orientation des pentes")
 
         self.aspect = self.output_path + os.sep + "aspect.tif"
-        #ALGORITHM: Aspect
-            # INPUT <ParameterRaster>
-            # BAND <ParameterNumber>
-            # COMPUTE_EDGES <ParameterBoolean>
-            # ZEVENBERGEN <ParameterBoolean>
-            # TRIG_ANGLE <ParameterBoolean>
-            # ZERO_FLAT <ParameterBoolean>
-            # OUTPUT <OutputRaster>
+
         processing.runalg("gdalogr:aspect", self.input_dem, 1, False, False, False, False, self.aspect)
         self.get_aspect_data()
 
@@ -532,10 +521,44 @@ class peregrineFalcon:
         if (input_type == "wetland"):
             gdal.ComputeProximity(self.wetland_rast_img_band1, proximity_img_band1, [])
             self.wetland_prox_data = proximity_img_band1.ReadAsArray(0,0, self.cols, self.rows)
+            self.reclass_proximity("wetland", self.wetland_prox_data)
         if (input_type == "water"):
             gdal.ComputeProximity(self.water_rast_img_band1, proximity_img_band1, [])
-            self.waterland_prox_data = proximity_img_band1.ReadAsArray(0,0, self.cols, self.rows)
+            self.water_prox_data = proximity_img_band1.ReadAsArray(0,0, self.cols, self.rows)
+            self.reclass_proximity("water", self.water_prox_data)
 
+
+
+
+
+
+    def reclass_proximity(self, name, input):
+        self.communications.show_message("info", u"Reclassification des matrices de proximité'")
+
+
+
+        input[numpy.where((input >= 0) & (input < (10*input.max()/100))) ] = 10
+        input[numpy.where((input >= (10*input.max()/100)) & (input < (20*input.max()/100))) ] = 9
+        input[numpy.where((input >= (20*input.max()/100)) & (input < (30*input.max()/100))) ] = 8
+        input[numpy.where((input >= (30*input.max()/100)) & (input < (40*input.max()/100))) ] = 7
+        input[numpy.where((input >= (40*input.max()/100)) & (input < (50*input.max()/100))) ] = 6
+        input[numpy.where((input >= (50*input.max()/100)) & (input < (60*input.max()/100))) ] = 5
+        input[numpy.where((input >= (60*input.max()/100)) & (input < (70*input.max()/100))) ] = 4
+        input[numpy.where((input >= (70*input.max()/100)) & (input < (80*input.max()/100))) ] = 3
+        input[numpy.where((input >= (80*input.max()/100)) & (input < (90*input.max()/100))) ] = 2
+        input[numpy.where((input >= (90*input.max()/100)) & (input <= (100*input.max()/100))) ] = 1
+
+        input[numpy.where((input == -9999))] = 1
+        input[numpy.isnan(input)] = 1
+
+        if (name == "water"):
+            self.water_prox_data_rc = input
+            # Écriture de l'image en output pour la fonction
+            self.write_gtiff("water_prox_reclass.tif", self.water_prox_data_rc)
+        if (name == "wetland"):
+            self.wetland_prox_data_rc = input
+            # Écriture de l'image en output pour la fonction
+            self.write_gtiff("wetland_prox_reclass.tif", self.wetland_prox_data_rc)
 
 
 
@@ -543,39 +566,52 @@ class peregrineFalcon:
 
 
     def results_calculation(self):
-        self.results_raster = self.aspect_data * self.falaises_data * self.wetland_prox_data * self.waterland_prox_data / 10000
+        self.results_raster = self.aspect_data * self.wetland_prox_data_rc * self.water_prox_data_rc * self.falaises_data
         self.write_gtiff("raster_output.tif", self.results_raster)
+        self.raster_output = self.output_path + os.sep + "raster_output.tif"
 
 
 
 
+
+
+    #####################################################################################
+    ###             Trouver le pixel maximum de chaque parcelle de falaise            ###
+    #####################################################################################
 
     def non_max_sup(self):
 
-        self.communications.show_message("info", "Générer le shapefile de points à partir des falaises")
+        self.communications.show_message("info", u"Générer le shapefile de points à partir des falaises")
+
+        # Obtenir le raster de parcelles de falaise
         source = gdal.Open(self.output_path + os.sep + "raster_output.tif")
         grey = numpy.array(source.GetRasterBand(1).ReadAsArray())
+        # La liste des maxima, identifiés par leur coordonnées en pixels
         points = []
 
+        # Une parcelle est un amas de pixels contigus; des pixels sont contigus s'ils se touchent en diagonale
         s = [[1, 1, 1],
              [1, 1, 1],
              [1, 1, 1]]
-
+        # Étiqueter chaque parcelle, merci numpy!
         labeled_array, num_features = ndimage.measurements.label(grey, structure=s)
         slices = ndimage.find_objects(labeled_array)
-        print "Found", num_features, "cliff patches in file"
+        self.communications.show_message("info", "Il y a " + str(num_features) + " parcelles de falaise distinctes")
 
+        # Pour chaque parcelle, mettre la valeur du pixel à zéro s'il existe une plus grande valeur ailleurs dans la parcelle
         for i, slice in enumerate(slices):
-            if not i % 10:
-                print "Treating patch", i
             patch = grey[slice]
+            # Si la parcelle a plus d'un pixel, trouver le maximum
             if len(patch) > 1:
                 ij = [ij for ij, val in ndenumerate(patch) if val == max(patch.flatten())]
                 ij = ij[0]
-                points.append([ij[0]+slice[0].start+0.5, ij[1]+slice[1].start+0.5])
+                points.append([ij[0] + slice[0].start + 0.5, ij[1] + slice[
+                    1].start + 0.5])  # ajouter 0.5 aux coordonnées pour avoir le centre du pixel
+            # Si la parcelle a un seul pixel, on a déjà le maximum
             else:
-                points.append([slice[0].start+0.5, slice[1].start+0.5])
+                points.append([slice[0].start + 0.5, slice[1].start + 0.5])
 
+        # Écrire le tout dans un shapefile
         driver = ogr.GetDriverByName("ESRI Shapefile")
         if os.path.exists(self.output_path + os.sep + "cliffs.shp"):
             driver.DeleteDataSource(self.output_path + os.sep + "cliffs.shp")
@@ -583,20 +619,24 @@ class peregrineFalcon:
 
         out_layer = shapeData.CreateLayer("cliffs", geom_type=ogr.wkbPoint)
 
-        # Write projection file
+        # Créer un fichier .prj correspondant à celui du raster d'entrée
         spatial_ref = source.GetProjection()
         file_handle = open(self.output_path + os.sep + "cliffs.prj", 'w')
         file_handle.write(spatial_ref)
         file_handle.close()
 
+        # Obtenir les coefficients de conversion pour passer de pixels à coordonnées
         affine = source.GetGeoTransform()
 
-        # Write each point
+        # Écrire chaque point dans le shapefile
         for point in points:
+            # Inverser x et y, parce que x = longitude et y = latitude...
             point = point[::-1]
-            x = affine[0] + affine[1]*point[0] + affine[2]*point[1]
-            y = affine[3] + affine[4]*point[0] + affine[5]*point[1]
+            # Transformer les coordonnées en pixels en coordonnées géographiques
+            x = affine[0] + affine[1] * point[0] + affine[2] * point[1]
+            y = affine[3] + affine[4] * point[0] + affine[5] * point[1]
 
+            # Écrire chaque point
             out_feat = ogr.Feature(out_layer.GetLayerDefn())
 
             geometry = ogr.Geometry(ogr.wkbPoint)
@@ -604,8 +644,70 @@ class peregrineFalcon:
 
             out_feat.SetGeometry(geometry)
             out_layer.CreateFeature(out_feat)
-            # Flush changes to disk
+            # Écrire les changements sur disque
             out_layer.SyncToDisk()
+
+
+
+
+
+
+    def invert_affine(self, affine, point):
+        Xg, Yg = point
+        a, b, c, d, e, f = affine
+        y = (b * Yg - b * d - e * Xg + e * a) / (b * f - e * c)
+        x = (Xg - c * y - a) / b
+        return int(y - 0.5), int(x - 0.5)
+
+
+
+
+
+
+    def fill_attribute_table(self):
+
+        # Ouvrir le shapefile
+        cliffs = QgsVectorLayer(self.output_path + os.sep + "cliffs.shp", "cliffs_points", "ogr")
+        caps = cliffs.dataProvider().capabilities()
+        prov = cliffs.dataProvider()
+
+        # Ouvrir tous les rasters pour obtenir les coefficients de transformation
+        orientation = gdal.Open(self.output_path + os.sep + "slope.tif")
+        inclinaison = gdal.Open(self.output_path + os.sep + "aspect.tif")
+        prox_wetland = gdal.Open(self.output_path + os.sep + "create_prox_raster_wl.tif")
+        prox_water = gdal.Open(self.output_path + os.sep + "create_prox_raster_w.tif")
+        score = gdal.Open(self.output_path + os.sep + "raster_output.tif")
+
+        # Ajouter tous les nouveaux attributs
+        if caps & QgsVectorDataProvider.AddAttributes:
+            cliffs.dataProvider().addAttributes([
+                QgsField("ORIENT", QVariant.Int),
+                QgsField("INCLIN", QVariant.Int),
+                QgsField("PROX_MH", QVariant.Int),
+                QgsField("PROX_LAC", QVariant.Int),
+                QgsField("POINTAGE", QVariant.Int)
+            ])
+        cliffs.updateFields()
+
+        patches = cliffs.getFeatures()
+        for patch in patches:
+            if caps & QgsVectorDataProvider.ChangeAttributeValues:
+                pt = patch.geometry().asPoint()
+
+                # Valeurs des attributs
+                attr_ori = self.aspect_data[self.invert_affine(orientation.GetGeoTransform(), pt)]
+                attr_inc = self.falaises_data[self.invert_affine(inclinaison.GetGeoTransform(), pt)]
+                attr_wet = self.wetland_prox_data[self.invert_affine(prox_wetland.GetGeoTransform(), pt)]
+                attr_wat = self.wetland_prox_data[self.invert_affine(prox_water.GetGeoTransform(), pt)]
+                attr_sco = self.results_raster[self.invert_affine(score.GetGeoTransform(), pt)]
+
+                # Inscrire les modifications
+                prov.changeAttributeValues({patch.id(): {prov.fieldNameMap()['ORIENT']: int(attr_ori),
+                                                         prov.fieldNameMap()['INCLIN']: int(attr_inc),
+                                                         prov.fieldNameMap()['PROX_MH']: int(attr_wet),
+                                                         prov.fieldNameMap()['PROX_LAC']: int(attr_wat),
+                                                         prov.fieldNameMap()['POINTAGE']: int(attr_sco)
+                                                         }})
 
 
 
@@ -615,12 +717,3 @@ class peregrineFalcon:
     def add_results_to_qgis(self):
         self.iface.addRasterLayer(self.output_path + os.sep + "raster_output.tif", "raster_output")
         self.iface.addVectorLayer(self.output_path + os.sep + "cliffs.shp", "cliffs_points", "ogr")
-
-
-# Comment faire le in memory ??
-    #memory layer
-
-#module qgis
-
-
-

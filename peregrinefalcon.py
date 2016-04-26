@@ -126,7 +126,6 @@ class PeregrineFalcon:
         self.dlg.waterAreaSlider.setValue(5)
         self.dlg.wetLandAreaSlider.setValue(5)
         self.dlg.slopeDegSlider.setValue(40)
-        self.dlg.pixelRadioButton.setChecked(True)
 
 
         # Initialisation des classes de communication et de validation
@@ -136,10 +135,10 @@ class PeregrineFalcon:
 
 
         ####### VALEURS TEMPORAIRES POUR DEBUG ################
-        self.dlg.demLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/proj/dem_highres_proj.tif")
-        self.dlg.waterLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/proj/waterbody_3.shp")
-        self.dlg.outLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/out_data/')
-        self.dlg.wetLandLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/proj/saturated_soil_2.shp')
+        self.dlg.demLineEdit.setText(r"C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\in_data\proj\dem_highres_proj.tif")
+        self.dlg.waterLineEdit.setText(r"C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\in_data\proj\waterbody_3.shp")
+        self.dlg.outLineEdit.setText(r'C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\out_data')
+        self.dlg.wetLandLineEdit.setText(r'C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\in_data\proj\saturated_soil_2.shp')
 
         ###################################
 
@@ -311,6 +310,9 @@ class PeregrineFalcon:
             if (self.validate.validate_input_spatial_ref_sys([self.dem_srs[3], self.water_srs[3], self.wetland_srs[3]]) == False):
                 return
 
+            # Validation des unités de la projection
+            if (self.validate.validate_projection_unit([self.dem_srs[2], self.water_srs[2], self.wetland_srs[2]]) == False):
+                return
 
             # Validation du chemin en sortie
             validate_output = self.validate.validate_output(self.dlg.outLineEdit.text())
@@ -359,7 +361,11 @@ class PeregrineFalcon:
             faucon.create_proximity_raster("water")
             self.set_progress_bar_value(16)
             faucon.results_calculation()
+            self.set_progress_bar_value(17)
             faucon.non_max_sup()
+            self.set_progress_bar_value(18)
+            faucon.fill_attribute_table()
+            self.set_progress_bar_value(19)
             self.communications.show_message("info", u"Traitements terminés!")
             self.communications.clear_message_bar_delay()
 
@@ -378,7 +384,7 @@ class PeregrineFalcon:
         try:
             self.progressMessageBar = self.iface.messageBar().createMessage("Plugin PeregrinFalcon: Traitements en cours...")
             self.progress = QProgressBar()
-            self.progress.setMaximum(16)
+            self.progress.setMaximum(19)
             self.progress.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
             self.progressMessageBar.layout().addWidget(self.progress)
         except:
@@ -388,7 +394,7 @@ class PeregrineFalcon:
     def write_dem_srs(self):
         validate_input = self.validate.validate_input([self.dlg.demLineEdit.text(), "", ""])
         if (validate_input):
-            self.write_input_srs("dem", "dem", str(self.dlg.demLineEdit.text()))
+            self.write_input_srs("dem", "dem", self.dlg.demLineEdit.text())
         else:
             self.dlg.demSrsLabel.setText("")
             self.dlg.demUnitLabel.setText("")
@@ -398,7 +404,7 @@ class PeregrineFalcon:
     def write_water_srs(self):
         validate_input = self.validate.validate_input(["", self.dlg.waterLineEdit.text(), ""])
         if (validate_input):
-            self.write_input_srs("water", "shp", str(self.dlg.waterLineEdit.text()))
+            self.write_input_srs("water", "shp", self.dlg.waterLineEdit.text())
         else:
             self.dlg.waterSrsLabel.setText("")
             self.dlg.waterUnitLabel.setText("")
@@ -408,7 +414,7 @@ class PeregrineFalcon:
     def write_wetland_srs(self):
         validate_input = self.validate.validate_input(["", "", self.dlg.wetLandLineEdit.text()])
         if (validate_input):
-            self.write_input_srs("wetland", "shp", str(self.dlg.wetLandLineEdit.text()))
+            self.write_input_srs("wetland", "shp", self.dlg.wetLandLineEdit.text())
         else:
             self.dlg.wetlandSrsLabel.setText("")
             self.dlg.wetlandUnitLabel.setText("")
@@ -448,7 +454,6 @@ class PeregrineFalcon:
         # Choisir un fichier
         self.input_dem = QFileDialog.getOpenFileName(self.dlg, "Selectionnez un fichier TIF", r"", '*.tif')
         self.dlg.demLineEdit.setText(self.input_dem)
-        print self.input_dem
 
         if self.input_dem != "":
             self.write_input_srs("dem", "dem", self.input_dem)
@@ -476,7 +481,7 @@ class PeregrineFalcon:
 
 
     def select_output_folder(self):
-        output_file = QFileDialog.getSaveFileName(self.dlg, "Selectionnez un emplacement de sortie", r"", "*.tif")
+        output_file = QFileDialog.getExistingDirectory(self.dlg, "Selectionnez un emplacement de sortie", r"", QFileDialog.ShowDirsOnly)
         self.dlg.outLineEdit.setText(output_file)
 
 
