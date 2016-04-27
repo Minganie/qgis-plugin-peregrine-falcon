@@ -170,7 +170,7 @@ class peregrineFalcon:
         aspect_band1 = self.input_aspect.GetRasterBand(1)
 
         self.aspect_data = aspect_band1.ReadAsArray(0,0, self.cols, self.rows)
-
+        del self.input_aspect
 
 
     # Reclassification de la matrice de l'orientation des pentes.
@@ -193,7 +193,7 @@ class peregrineFalcon:
         self.aspect_data[numpy.isnan(self.aspect_data)] = 1
 
         # Écriture de l'image en output pour la fonction
-        self.write_gtiff("aspect_reclass.tif", self.aspect_data)
+        #self.write_gtiff("aspect_reclass.tif", self.aspect_data)
 
 
 
@@ -209,7 +209,7 @@ class peregrineFalcon:
         self.falaises_data[numpy.isnan(self.falaises_data)] = 0
 
         # Écriture de l'image en output pour la fonction
-        self.write_gtiff("identify_cliffs.tif", self.falaises_data)
+        #self.write_gtiff("identify_cliffs.tif", self.falaises_data)
 
 
 
@@ -225,6 +225,7 @@ class peregrineFalcon:
         self.input_water_shp_lyr = self.input_water_shp.GetLayer()
 
         temp_write_path = self.output_path + os.sep + 'water_rasterized.tif'
+        self.water_rasterized = temp_write_path
         self.water_rast_img = self.writeDriver.Create(temp_write_path, self.cols, self.rows, 1, GDT_Int32)
 
         self.water_rast_img.SetGeoTransform((self.input_geot[0], self.input_geot[1], self.input_geot[2], self.input_geot[3], self.input_geot[4], self.input_geot[5]))
@@ -258,6 +259,7 @@ class peregrineFalcon:
 
 
         temp_write_path = self.output_path + os.sep + 'wetland_rasterized.tif'
+        self.wetland_rasterized = temp_write_path
         self.wetland_rast_img = self.writeDriver.Create(temp_write_path, self.cols, self.rows, 1, GDT_Int32)
 
         self.wetland_rast_img.SetGeoTransform((self.input_geot[0], self.input_geot[1], self.input_geot[2], self.input_geot[3], self.input_geot[4], self.input_geot[5]))
@@ -318,7 +320,7 @@ class peregrineFalcon:
                         self.falaises_data[i][j] = 0
 
 
-        self.write_gtiff("calculate_slope_area.tif", self.falaises_data)
+        #self.write_gtiff("calculate_slope_area.tif", self.falaises_data)
 
 
 
@@ -361,7 +363,7 @@ class peregrineFalcon:
                         self.water_data_rc[i][j] = 0
 
 
-        self.write_gtiff("calculate_water_area.tif", self.water_data_rc)
+        #self.write_gtiff("calculate_water_area.tif", self.water_data_rc)
 
 
 
@@ -404,7 +406,7 @@ class peregrineFalcon:
 
 
 
-        self.write_gtiff("calculate_wetland_area.tif", self.wetland_data_rc)
+        #self.write_gtiff("calculate_wetland_area.tif", self.wetland_data_rc)
 
 
 
@@ -455,11 +457,13 @@ class peregrineFalcon:
         # Retourne un raster du calcul de proximité
         self.water_rast_img_band1 = self.water_rast_img.GetRasterBand(1)
         if (input_type == "wetland"):
+            self.wetland_prox = temp_write_path
             gdal.ComputeProximity(self.wetland_rast_img_band1, proximity_img_band1, [])
             self.wetland_prox_data = proximity_img_band1.ReadAsArray(0,0, self.cols, self.rows)
             self.reclass_proximity("wetland", self.wetland_prox_data)
 
         if (input_type == "water"):
+            self.water_prox = temp_write_path
             gdal.ComputeProximity(self.water_rast_img_band1, proximity_img_band1, [])
             self.water_prox_data = proximity_img_band1.ReadAsArray(0,0, self.cols, self.rows)
             self.reclass_proximity("water", self.water_prox_data)
@@ -491,12 +495,12 @@ class peregrineFalcon:
         if (name == "water"):
             self.water_prox_data_rc = input
             # Écriture de l'image en output pour la fonction
-            self.write_gtiff("water_prox_reclass.tif", self.water_prox_data_rc)
+            #self.write_gtiff("water_prox_reclass.tif", self.water_prox_data_rc)
 
         if (name == "wetland"):
             self.wetland_prox_data_rc = input
             # Écriture de l'image en output pour la fonction
-            self.write_gtiff("wetland_prox_reclass.tif", self.wetland_prox_data_rc)
+            #self.write_gtiff("wetland_prox_reclass.tif", self.wetland_prox_data_rc)
 
 
 
@@ -651,7 +655,26 @@ class peregrineFalcon:
 
 
 
-
+    # Ajouter les résultats de l'outil dans QGIS
     def add_results_to_qgis(self):
         self.iface.addRasterLayer(self.output_path + os.sep + "raster_output.tif", "raster_output")
         self.iface.addVectorLayer(self.output_path + os.sep + "cliffs.shp", "cliffs_points", "ogr")
+
+
+    # Supprimer les fichiers temporaires créés
+    def delete_temp_rasters(self):
+        try:
+            del self.wetland_rast_img, self.water_rast_img
+            self.writeDriver.Delete(self.aspect)
+            self.writeDriver.Delete(self.slope)
+            self.writeDriver.Delete(self.water_prox)
+            self.writeDriver.Delete(self.wetland_prox)
+            self.writeDriver.Delete(self.water_rasterized)
+            self.writeDriver.Delete(self.wetland_rasterized)
+
+
+
+            del self.aspect, self.slope, self.wetland_prox, self.water_prox, self.water_rasterized, self.wetland_rasterized
+
+        except:
+            self.communications.show_message("warning", "Impossible de supprimer les fichiers temporaires.")

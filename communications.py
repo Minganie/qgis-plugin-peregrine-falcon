@@ -51,11 +51,23 @@ class communications:
     # Afficher un message dans le "Message Bar"
     def show_message_messageBar(self, level, message):
         if (level == "warning"):
-            self.progressMessageBar.setText(message)
+            self.warning_message_bar(message)
+            self.clear_message_bar_delay()
         if (level == "critical"):
             self.critical_message_bar(message)
             self.clear_message_bar_delay()
 
+
+
+
+    # Si c'est un message "warning"
+    def warning_message_bar(self, message):
+        self.progressMessageBar = self.iface.messageBar().createMessage(message)
+        self.progress = QProgressBar()
+        self.progress.setMaximum(19)
+        self.progress.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
+        self.progressMessageBar.layout().addWidget(self.progress)
+        self.iface.messageBar().pushWidget(self.progressMessageBar, self.iface.messageBar().WARNING)
 
 
 
@@ -64,7 +76,7 @@ class communications:
     def critical_message_bar(self, message):
         self.progressMessageBar = self.iface.messageBar().createMessage(message)
         self.progress = QProgressBar()
-        self.progress.setMaximum(15)
+        self.progress.setMaximum(19)
         self.progress.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
         self.progressMessageBar.layout().addWidget(self.progress)
         self.iface.messageBar().pushWidget(self.progressMessageBar, self.iface.messageBar().CRITICAL)
