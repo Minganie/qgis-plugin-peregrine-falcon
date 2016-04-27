@@ -163,6 +163,17 @@ class validation:
 
 
 
+    # Vérifier si les fichiers en entrée ont un système de coordonnées dont les unités sont en mètres
+    def validate_projection_unit(self, inputs):
+        for input in inputs:
+            if (str(input).lower() != "metre") and (str(input).lower() != "meter") and (str(input).lower() != "metres") and (str(input).lower() != "meters") and (str(input).lower() != "m"):
+                self.communications.show_message("critical", u"Un des fichiers en entrée n'a pas des unités en mètres!")
+                return False
+
+        # Retourne vrai si les tests ont réussis!
+        return True
+
+
 
     def validate_projection_unit(self, inputs):
         for input in inputs:
@@ -183,6 +194,7 @@ class validation:
         srs3 = osr.SpatialReference(inputs[2])
 
         if (srs1.IsSame(srs2) == srs1.IsSame(srs3) == srs2.IsSame(srs3)):
+
             # Retourne vrai si les tests ont réussis!
 
             return True

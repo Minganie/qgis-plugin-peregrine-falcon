@@ -21,18 +21,19 @@
  ***************************************************************************/
 """
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
-from PyQt4.QtGui import QAction, QIcon, QFileDialog, QProgressBar
+from PyQt4.QtGui import QAction, QIcon, QFileDialog, QProgressBar, QMessageBox
+
 # Initialize Qt resources from file resources.py
 import resources
-# Import the code for the dialog
+
+
 from peregrinefalcon_dialog import PeregrineFalconDialog
 from communications import communications
-
-import time
-import os.path
-
 from faucon import peregrineFalcon
 from faucon_validation import validation
+
+import os.path
+
 
 
 class PeregrineFalcon:
@@ -74,32 +75,39 @@ class PeregrineFalcon:
         self.toolbar = self.iface.addToolBar(u'PeregrineFalcon')
         self.toolbar.setObjectName(u'PeregrineFalcon')
 
-        #########################################################
-        #########################################################
+        ##################################################################################################################
+        ##################################################################################################################
 
 
         # Initialisation des variables
         self.input_wetland = ""
         self.input_water = ""
         self.input_dem = ""
-
         self.plugin_name = "PeregrineFalcon"
 
+        # Initialisation de la progress bar
         self.initialize_progress_bar()
 
-        #######
 
+        # Gérer les évènements des boutons
         self.dlg.demPushButton.clicked.connect(self.select_dem_file)
         self.dlg.waterPushButton.clicked.connect(self.select_water_file)
         self.dlg.wetLandPushButton.clicked.connect(self.select_wetland_file)
         self.dlg.outPushButton.clicked.connect(self.select_output_folder)
+        self.dlg.helpPushButton.clicked.connect(self.show_help)
 
-
+        # Gérer les évènements des LineEdits
         self.dlg.demLineEdit.editingFinished.connect(self.write_dem_srs)
         self.dlg.waterLineEdit.editingFinished.connect(self.write_water_srs)
         self.dlg.wetLandLineEdit.editingFinished.connect(self.write_wetland_srs)
 
+        # Gérer les évènements des Sliders
+        self.dlg.slopeAreaSlider.valueChanged.connect(self.show_slope_area_value)
+        self.dlg.waterAreaSlider.valueChanged.connect(self.show_water_area_value)
+        self.dlg.slopeDegSlider.valueChanged.connect(self.show_slope_deg_value)
+        self.dlg.wetLandAreaSlider.valueChanged.connect(self.show_wet_land_value)
 
+        # Régler les valeurs minimum et maximum des Sliders
         self.dlg.slopeAreaSlider.setMinimum(2)
         self.dlg.slopeAreaSlider.setMaximum(1000)
 
@@ -111,15 +119,6 @@ class PeregrineFalcon:
 
         self.dlg.wetLandAreaSlider.setMinimum(2)
         self.dlg.wetLandAreaSlider.setMaximum(1000)
-
-
-        # Listen to events
-        self.dlg.slopeAreaSlider.valueChanged.connect(self.show_slope_area_value)
-        self.dlg.waterAreaSlider.valueChanged.connect(self.show_water_area_value)
-        self.dlg.slopeDegSlider.valueChanged.connect(self.show_slope_deg_value)
-        self.dlg.wetLandAreaSlider.valueChanged.connect(self.show_wet_land_value)
-
-
 
         # Initialiser des valeurs par défaut pour les paramètres
         self.dlg.slopeAreaSlider.setValue(5)
@@ -134,18 +133,22 @@ class PeregrineFalcon:
 
 
 
-        ####### VALEURS TEMPORAIRES POUR DEBUG ################
-        self.dlg.demLineEdit.setText(r"C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\in_data\proj\dem_highres_proj.tif")
-        self.dlg.waterLineEdit.setText(r"C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\in_data\proj\waterbody_3.shp")
-        self.dlg.outLineEdit.setText(r'C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\out_data')
-        self.dlg.wetLandLineEdit.setText(r'C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\in_data\proj\saturated_soil_2.shp')
-
-        ###################################
-
+        ################################# VALEURS TEMPORAIRES POUR DEBUG ##############################################
+        self.dlg.demLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/dem_highres_2.tif")
+        self.dlg.waterLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/waterbody_2.shp")
+        self.dlg.outLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/out_data/')
+        self.dlg.wetLandLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/saturated_soil_2.shp')
+        ###############################################################################################################
 
 
-        #########################################################
-        #########################################################
+
+        ##################################################################################################################
+        ##################################################################################################################
+
+
+
+
+
 
 
     # noinspection PyMethodMayBeStatic
@@ -264,6 +267,8 @@ class PeregrineFalcon:
         # show the dialog
         self.dlg.show()
 
+
+
         # Initialiser la Progress Bar
         self.initialize_progress_bar()
 
@@ -320,10 +325,8 @@ class PeregrineFalcon:
                 return
 
 
-
-
-
             # Début des traitements
+
             self.communications.write_qgis_logs("info", u"\nDébut des traitements\n")
             self.set_progress_bar_value(1)
             faucon = peregrineFalcon(self.iface, self.communications, self.progress, self.dlg.demLineEdit.text(), self.dlg.waterLineEdit.text(), self.dlg.wetLandLineEdit.text(), self.dlg.outLineEdit.text(), self.dlg.slopeLineEdit.text(), self.dlg.waterParamLineEdit.text(), self.dlg.wetLandParamLineEdit.text(), "", self.dlg.slopeDegLineEdit.text())
@@ -336,62 +339,79 @@ class PeregrineFalcon:
             faucon.dem_to_slopes()
             self.set_progress_bar_value(5)
             faucon.dem_to_aspect()
-            faucon.aspect_reclass()
-            faucon.get_input_data()
             self.set_progress_bar_value(6)
-            faucon.identify_cliffs()
+            faucon.aspect_reclass()
             self.set_progress_bar_value(7)
-
-            faucon.calculate_slope_avg()
+            faucon.get_input_data()
             self.set_progress_bar_value(8)
-            faucon.rasterize_water()
+            faucon.identify_cliffs()
             self.set_progress_bar_value(9)
-            faucon.rasterize_wetland()
+            #faucon.calculate_slope_avg()
             self.set_progress_bar_value(10)
-            faucon.calculate_water_area()
+            faucon.rasterize_water()
             self.set_progress_bar_value(11)
-            faucon.calculate_wetland_area()
+            faucon.rasterize_wetland()
             self.set_progress_bar_value(12)
-            faucon.calculate_slope_area()
+            faucon.calculate_water_area()
             self.set_progress_bar_value(13)
-
+            faucon.calculate_wetland_area()
             self.set_progress_bar_value(14)
-            faucon.create_proximity_raster("wetland")
+            faucon.calculate_slope_area()
             self.set_progress_bar_value(15)
-            faucon.create_proximity_raster("water")
             self.set_progress_bar_value(16)
-            faucon.results_calculation()
+            faucon.create_proximity_raster("wetland")
             self.set_progress_bar_value(17)
-            faucon.non_max_sup()
+            faucon.create_proximity_raster("water")
             self.set_progress_bar_value(18)
-            faucon.fill_attribute_table()
+            faucon.results_calculation()
             self.set_progress_bar_value(19)
+            faucon.non_max_sup()
+            self.set_progress_bar_value(20)
+            faucon.fill_attribute_table()
+            self.set_progress_bar_value(21)
             self.communications.show_message("info", u"Traitements terminés!")
             self.communications.clear_message_bar_delay()
 
             faucon.add_results_to_qgis()
 
+
+
+
+
+
+    # Règle les valeurs de la barre de progrès
     def set_progress_bar_value(self, value):
+        # Test si c'est possible d'ajouter une valeur à la barre
         try:
             self.progress.setValue(value)
         except:
+            # Si c'est impossible, réinitialiser la barre de progrès, puis ajouter les valeur
             self.initialize_progress_bar()
             self.iface.messageBar().pushWidget(self.progressMessageBar, self.iface.messageBar().INFO)
             self.progress.setValue(value)
 
+
+
+
+
+    # Initialise la barre de progrès
     def initialize_progress_bar(self):
-        # Initialiser la progress bar
         try:
-            self.progressMessageBar = self.iface.messageBar().createMessage("Plugin PeregrinFalcon: Traitements en cours...")
+            self.progressMessageBar = self.iface.messageBar().createMessage("Plugin Peregrine Falcon: Traitements en cours...")
             self.progress = QProgressBar()
-            self.progress.setMaximum(19)
+            self.progress.setMaximum(21)
             self.progress.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
             self.progressMessageBar.layout().addWidget(self.progress)
         except:
             pass
 
 
+
+
+
+    # Fonction appellée par un évènnement (end editing) qui redirige vers la méthode pour écrire le SRS dans le dialog
     def write_dem_srs(self):
+        # Valider si le chemin indiqué vers le fichier est valide
         validate_input = self.validate.validate_input([self.dlg.demLineEdit.text(), "", ""])
         if (validate_input):
             self.write_input_srs("dem", "dem", self.dlg.demLineEdit.text())
@@ -401,7 +421,10 @@ class PeregrineFalcon:
 
 
 
+
+    # Fonction appellée par un évènnement (end editing) qui redirige vers la méthode pour écrire le SRS dans le dialog
     def write_water_srs(self):
+        # Valider si le chemin indiqué vers le fichier est valide
         validate_input = self.validate.validate_input(["", self.dlg.waterLineEdit.text(), ""])
         if (validate_input):
             self.write_input_srs("water", "shp", self.dlg.waterLineEdit.text())
@@ -411,7 +434,10 @@ class PeregrineFalcon:
 
 
 
+
+    # Fonction appellée par un évènnement (end editing) qui redirige vers la méthode pour écrire le SRS dans le dialog
     def write_wetland_srs(self):
+        # Valider si le chemin indiqué vers le fichier est valide
         validate_input = self.validate.validate_input(["", "", self.dlg.wetLandLineEdit.text()])
         if (validate_input):
             self.write_input_srs("wetland", "shp", self.dlg.wetLandLineEdit.text())
@@ -421,6 +447,8 @@ class PeregrineFalcon:
 
 
 
+
+    # Fonction pour obtenir et écrire les SRS dans les labels
     def write_input_srs(self, name, type, input):
 
         if (input != None) and (input != ""):
@@ -450,6 +478,8 @@ class PeregrineFalcon:
 
 
 
+
+    # Fonction appellée par un évènnement (button click) pour ajouter un fichier
     def select_dem_file(self):
         # Choisir un fichier
         self.input_dem = QFileDialog.getOpenFileName(self.dlg, "Selectionnez un fichier TIF", r"", '*.tif')
@@ -460,6 +490,8 @@ class PeregrineFalcon:
 
 
 
+
+    # Fonction appellée par un évènnement (button click) pour ajouter un fichier
     def select_water_file(self):
         # Choisir un fichier
         self.input_water = QFileDialog.getOpenFileName(self.dlg, "Selectionnez un fichier SHP", r"", '*.shp')
@@ -470,6 +502,8 @@ class PeregrineFalcon:
 
 
 
+
+    # Fonction appellée par un évènnement (button click) pour ajouter un fichier
     def select_wetland_file(self):
         # Choisir un fichier
         self.input_wetland = QFileDialog.getOpenFileName(self.dlg, "Selectionnez un fichier SHP", r"", '*.shp')
@@ -480,24 +514,36 @@ class PeregrineFalcon:
 
 
 
+
+    # Fonction appellée par un évènnement (button click) pour ajouter le chemin de sortie
     def select_output_folder(self):
         output_file = QFileDialog.getExistingDirectory(self.dlg, "Selectionnez un emplacement de sortie", r"", QFileDialog.ShowDirsOnly)
         self.dlg.outLineEdit.setText(output_file)
 
 
 
+    # Fonction appellée par un évènnement (value changed) dans un Slider pour afficher la nouvelle valeur
     def show_slope_area_value(self):
         slope_value = self.dlg.slopeAreaSlider.value()
         self.dlg.slopeLineEdit.setText(str(slope_value))
 
+
+
+    # Fonction appellée par un évènnement (value changed) dans un Slider pour afficher la nouvelle valeur
     def show_water_area_value(self):
         water_value = self.dlg.waterAreaSlider.value()
         self.dlg.waterParamLineEdit.setText(str(water_value))
 
+
+
+    # Fonction appellée par un évènnement (value changed) dans un Slider pour afficher la nouvelle valeur
     def show_slope_deg_value(self):
         slope_deg_value = self.dlg.slopeDegSlider.value()
         self.dlg.slopeDegLineEdit.setText(str(slope_deg_value))
 
+
+
+    # Fonction appellée par un évènnement (value changed) dans un Slider pour afficher la nouvelle valeur
     def show_wet_land_value(self):
         wet_land_value = self.dlg.wetLandAreaSlider.value()
         self.dlg.wetLandParamLineEdit.setText(str(wet_land_value))
@@ -505,21 +551,23 @@ class PeregrineFalcon:
 
 
 
-
-
-
+    # Fonction qui affiche la fenêtre d'aide
     def show_help(self):
-        pass
+        about = u"<p align='center'>Plugin Peregrine-Falcon<br><br>" \
+                u"Créé par Myriam Luce (Myriam.Luce@USherbrooke.ca)<br>et<br>Patrice Pineault (patrice.pineault@usherbrooke.ca)<br><br>" \
+                u"----------------------------------------<br><br>" \
+                u"Les fichiers en entrée doivent obligatoirement avoir un système de coordonnées dont les unités sont en mètres!<br>" \
+                u"<br>---------------------------------------<br>" \
+                u"<br>DEM: Modèle d'élévation digital (DEM) en format GTiff" \
+                u"<br><br>Étendues d'eau: Fichier shapefile (.shp) correspondant aux étendues d'eau du secteur à l'étude<br>" \
+                u"<br>Milieux humides: Fichier shapefile (.shp) correspondant aux milieux humides du secteur à l'étude<br>" \
+                u"<br>Emplacement de sortie: Choisir un dossier pour les fichiers en sortie<br>" \
+                u"<br>Superficie de la pente: Garde seulement les amas de pixels contigus supérieur à la valeur déterminée<br>" \
+                u"<br>Superficie des étendues d'eau: Garde seulement les amas de pixels contigus supérieur à la valeur déterminée<br>" \
+                u"<br>Superficie des milieux humides: Garde seulement les amas de pixels contigus supérieur à la valeur déterminée<br>" \
+                u"<br>Inclinaison de la pente (degrés): Garde seulement les valeurs d'inclinaison de la pente supérieurs à la valeur déterminée<br><br><br>" \
+                u"</p>"
+        self.help_dialog = QMessageBox.about(self.dlg, u"À propos", about)
 
 
-    def validate_input_dem(self):
-        pass
-
-
-    def validate_input_water(self):
-        pass
-
-
-    def validate_input_wetland(self):
-        pass
 
