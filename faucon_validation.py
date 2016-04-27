@@ -175,17 +175,6 @@ class validation:
 
 
 
-    def validate_projection_unit(self, inputs):
-        for input in inputs:
-            if (str(input).lower() != "metre") and (str(input).lower() != "meter") and (str(input).lower() != "metres") and (str(input).lower() != "meters") and (str(input).lower() != "m"):
-                print input
-                self.communications.show_message("critical", u"Un des fichiers en entrée n'a pas des unités en mètres!")
-                return False
-
-        return True
-
-
-
     # Vérifier si les fichiers en entrée ont le même SRS
     def validate_input_spatial_ref_sys(self, inputs):
         # Obtenir les SRS

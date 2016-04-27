@@ -134,10 +134,15 @@ class PeregrineFalcon:
 
 
         ################################# VALEURS TEMPORAIRES POUR DEBUG ##############################################
-        self.dlg.demLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/dem_highres_2.tif")
-        self.dlg.waterLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/waterbody_2.shp")
-        self.dlg.outLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/out_data/')
-        self.dlg.wetLandLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/saturated_soil_2.shp')
+        # self.dlg.demLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/dem_highres_2.tif")
+        # self.dlg.waterLineEdit.setText(r"/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/waterbody_2.shp")
+        # self.dlg.outLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/out_data/')
+        # self.dlg.wetLandLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/saturated_soil_2.shp')
+
+        self.dlg.demLineEdit.setText(r"C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\in_data\proj\dem_highres_proj.tif")
+        self.dlg.waterLineEdit.setText(r"C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\in_data\proj\waterbody_3.shp")
+        self.dlg.outLineEdit.setText(r'C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\out_data')
+        self.dlg.wetLandLineEdit.setText(r'C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\in_data\proj\saturated_soil_2.shp')
         ###############################################################################################################
 
 
@@ -346,29 +351,26 @@ class PeregrineFalcon:
             self.set_progress_bar_value(8)
             faucon.identify_cliffs()
             self.set_progress_bar_value(9)
-            #faucon.calculate_slope_avg()
-            self.set_progress_bar_value(10)
             faucon.rasterize_water()
-            self.set_progress_bar_value(11)
+            self.set_progress_bar_value(10)
             faucon.rasterize_wetland()
-            self.set_progress_bar_value(12)
+            self.set_progress_bar_value(11)
             faucon.calculate_water_area()
-            self.set_progress_bar_value(13)
+            self.set_progress_bar_value(12)
             faucon.calculate_wetland_area()
-            self.set_progress_bar_value(14)
+            self.set_progress_bar_value(13)
             faucon.calculate_slope_area()
-            self.set_progress_bar_value(15)
-            self.set_progress_bar_value(16)
+            self.set_progress_bar_value(14)
             faucon.create_proximity_raster("wetland")
-            self.set_progress_bar_value(17)
+            self.set_progress_bar_value(15)
             faucon.create_proximity_raster("water")
-            self.set_progress_bar_value(18)
+            self.set_progress_bar_value(16)
             faucon.results_calculation()
-            self.set_progress_bar_value(19)
+            self.set_progress_bar_value(17)
             faucon.non_max_sup()
-            self.set_progress_bar_value(20)
+            self.set_progress_bar_value(18)
             faucon.fill_attribute_table()
-            self.set_progress_bar_value(21)
+            self.set_progress_bar_value(19)
             self.communications.show_message("info", u"Traitements terminés!")
             self.communications.clear_message_bar_delay()
 
@@ -399,7 +401,7 @@ class PeregrineFalcon:
         try:
             self.progressMessageBar = self.iface.messageBar().createMessage("Plugin Peregrine Falcon: Traitements en cours...")
             self.progress = QProgressBar()
-            self.progress.setMaximum(21)
+            self.progress.setMaximum(19)
             self.progress.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
             self.progressMessageBar.layout().addWidget(self.progress)
         except:

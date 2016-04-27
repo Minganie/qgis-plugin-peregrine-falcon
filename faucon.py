@@ -204,7 +204,7 @@ class peregrineFalcon:
         self.falaises_data = self.slopes_data
 
         # Enlever tout les pixels dont la valeur est inférieur à celle spécifié dans les paramètres
-        self.communications.show_message("info", u"Élimination des pixels inférieur à %s" % str(self.slope_deg))
+        self.communications.show_message("info", u"Élimination des pixels inférieurs à %s" % str(self.slope_deg))
         self.falaises_data[self.falaises_data < float(self.slope_deg)] = 0
         self.falaises_data[numpy.isnan(self.falaises_data)] = 0
 
