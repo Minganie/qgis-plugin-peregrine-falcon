@@ -595,7 +595,7 @@ class peregrineFalcon:
         a, b, c, d, e, f = affine
         y = (b * Yg - b * d - e * Xg + e * a) / (b * f - e * c)
         x = (Xg - c * y - a) / b
-        return int(y - 0.5), int(x - 0.5)
+        return int(x), int(y)
 
 
 
@@ -628,16 +628,25 @@ class peregrineFalcon:
         cliffs.updateFields()
 
         patches = cliffs.getFeatures()
-        for patch in patches:
-            if caps & QgsVectorDataProvider.ChangeAttributeValues:
+        if caps & QgsVectorDataProvider.ChangeAttributeValues:
+            for patch in patches:
                 pt = patch.geometry().asPoint()
 
                 # Valeurs des attributs
-                attr_ori = self.aspect_data[self.invert_affine(orientation.GetGeoTransform(), pt)]
-                attr_inc = self.falaises_data[self.invert_affine(inclinaison.GetGeoTransform(), pt)]
-                attr_wet = self.wetland_prox_data[self.invert_affine(prox_wetland.GetGeoTransform(), pt)]
-                attr_wat = self.wetland_prox_data[self.invert_affine(prox_water.GetGeoTransform(), pt)]
-                attr_sco = self.results_raster[self.invert_affine(score.GetGeoTransform(), pt)]
+                rept = self.invert_affine(orientation.GetGeoTransform(), pt)
+                attr_ori = self.aspect_data[rept[::-1]]
+
+                rept = self.invert_affine(inclinaison.GetGeoTransform(), pt)
+                attr_inc = self.falaises_data[rept[::-1]]
+
+                rept = self.invert_affine(prox_wetland.GetGeoTransform(), pt)
+                attr_wet = self.wetland_prox_data[rept[::-1]]
+
+                rept = self.invert_affine(prox_water.GetGeoTransform(), pt)
+                attr_wat = self.wetland_prox_data[rept[::-1]]
+
+                rept = self.invert_affine(score.GetGeoTransform(), pt)
+                attr_sco = self.results_raster[rept[::-1]]
 
                 # Inscrire les modifications
                 prov.changeAttributeValues({patch.id(): {prov.fieldNameMap()['ORIENT']: int(attr_ori),
