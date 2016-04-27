@@ -139,10 +139,16 @@ class PeregrineFalcon:
         # self.dlg.outLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/out_data/')
         # self.dlg.wetLandLineEdit.setText(r'/home/prototron/.qgis2/python/plugins/qgis-plugin-peregrine-falcon/in_data/saturated_soil_2.shp')
 
-        self.dlg.demLineEdit.setText(r"C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\in_data\proj\dem_highres_proj.tif")
-        self.dlg.waterLineEdit.setText(r"C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\in_data\proj\waterbody_3.shp")
-        self.dlg.outLineEdit.setText(r'C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\out_data')
-        self.dlg.wetLandLineEdit.setText(r'C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\in_data\proj\saturated_soil_2.shp')
+        # self.dlg.demLineEdit.setText(r"C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\in_data\proj\dem_highres_proj.tif")
+        # self.dlg.waterLineEdit.setText(r"C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\in_data\proj\waterbody_3.shp")
+        # self.dlg.outLineEdit.setText(r'C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\out_data')
+        # self.dlg.wetLandLineEdit.setText(r'C:\Users\Myriam\Documents\S5 - H2016\GMQ580\qgis-plugin-peregrine-falcon\in_data\proj\saturated_soil_2.shp')
+
+
+        self.dlg.demLineEdit.setText(r"C:\OSGeo4W64\apps\qgis\python\plugins\qgis-plugin-peregrine-falcon\in_data\proj\dem_highres_proj.tif")
+        self.dlg.waterLineEdit.setText(r"C:\OSGeo4W64\apps\qgis\python\plugins\qgis-plugin-peregrine-falcon\in_data\proj\waterbody_3.shp")
+        self.dlg.outLineEdit.setText(r'C:\TEMP')
+        self.dlg.wetLandLineEdit.setText(r'C:\OSGeo4W64\apps\qgis\python\plugins\qgis-plugin-peregrine-falcon\in_data\proj\saturated_soil_2.shp')
         ###############################################################################################################
 
 
@@ -371,11 +377,12 @@ class PeregrineFalcon:
             self.set_progress_bar_value(18)
             faucon.fill_attribute_table()
             self.set_progress_bar_value(19)
+
             self.communications.show_message("info", u"Traitements terminés!")
             self.communications.clear_message_bar_delay()
 
             faucon.add_results_to_qgis()
-
+            faucon.delete_temp_rasters()
 
 
 
